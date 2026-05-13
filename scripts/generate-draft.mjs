@@ -17,6 +17,7 @@ import { TwitterApi } from 'twitter-api-v2'
 import { readFileSync, writeFileSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import { postToNote } from './post-to-note.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
@@ -262,6 +263,13 @@ async function main() {
       await postToX(title, description, articleUrl)
     } catch (e) {
       console.warn(`⚠️ X投稿をスキップ: ${e.message}`)
+    }
+
+    console.log('\n📝 noteに投稿中...')
+    try {
+      await postToNote(title, content)
+    } catch (e) {
+      console.warn(`⚠️ note投稿をスキップ: ${e.message}`)
     }
 
     console.log(`\n🎉 完了！\n記事URL: ${articleUrl}`)

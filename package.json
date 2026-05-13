@@ -11,9 +11,11 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.2",
     "@octokit/rest": "^22.0.1",
+    "@playwright/test": "^1.60.0",
     "googleapis": "^171.4.0",
     "gray-matter": "^4.0.3",
     "next": "16.2.6",
+    "playwright": "^1.60.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "remark": "^15.0.1",

@@ -1,9 +1,11 @@
-name: 週次自動運用（ニュース監視・記事公開・X投稿・SEO改善）
+name: 週次自動運用（ニュース監視・記事公開・X投稿・SEO改善・note投稿）
 
 on:
   schedule:
     # 月曜 朝8時 JST（ニュース監視 → 記事生成 → Vercel公開 → X投稿）
     - cron: '0 23 * * 0'
+    # 火曜 朝8時 JST（既存記事をnoteに週1本投稿）
+    - cron: '0 23 * * 1'
     # 水曜 朝9時 JST（既存記事をXに週1本投稿）
     - cron: '0 0 * * 3'
     # 木曜 朝7時 JST（SEO監視 → 低順位記事を自動改善）
@@ -21,6 +23,7 @@ on:
           - monitor   # ニュース監視 → 記事生成 → X投稿
           - post      # 既存記事をXに投稿
           - seo       # SEO監視 → 低順位記事を自動改善
+          - note      # 既存記事をnoteに投稿
 
 jobs:
   # ================================================================
@@ -46,7 +49,10 @@ jobs:
 
       - run: npm ci
 
-      - name: ニュース監視 → 記事生成 → X投稿
+      - name: Playwrightブラウザをインストール
+        run: npx playwright install chromium --with-deps
+
+      - name: ニュース監視 → 記事生成 → X投稿 → note投稿
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -55,6 +61,8 @@ jobs:
           X_API_SECRET: ${{ secrets.X_API_SECRET }}
           X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
           X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          NOTE_EMAIL: ${{ secrets.NOTE_EMAIL }}
+          NOTE_PASSWORD: ${{ secrets.NOTE_PASSWORD }}
         run: node scripts/generate-draft.mjs
 
       - name: 実行結果
@@ -143,4 +151,48 @@ jobs:
         if: always()
         run: |
           echo "## 木曜SEO改善 結果" >> $GITHUB_STEP_SUMMARY
+          echo "実行日時: $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')" >> $GITHUB_STEP_SUMMARY
+
+  # ================================================================
+  # JOB 4: 既存記事をnoteに週1本ずつ投稿
+  # 毎週火曜 朝8時 JST
+  # ================================================================
+  note-post:
+    name: note定期投稿
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'note' ||
+      github.event_name == 'schedule' && github.event.schedule == '0 23 * * 1'
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Playwrightブラウザをインストール
+        run: npx playwright install chromium --with-deps
+
+      - name: 既存記事をnoteに投稿
+        env:
+          NOTE_EMAIL: ${{ secrets.NOTE_EMAIL }}
+          NOTE_PASSWORD: ${{ secrets.NOTE_PASSWORD }}
+        run: node scripts/note-scheduled.mjs
+
+      - name: 投稿状態を保存
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: note投稿状態を更新'
+          file_pattern: 'scripts/.note-queue-state.json'
+
+      - name: 実行結果
+        if: always()
+        run: |
+          echo "## 火曜note投稿 結果" >> $GITHUB_STEP_SUMMARY
           echo "実行日時: $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')" >> $GITHUB_STEP_SUMMARY
