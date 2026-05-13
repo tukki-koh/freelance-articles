@@ -32,11 +32,48 @@ export async function postToNote(title, body) {
   try {
     // ログイン
     console.log('📝 noteにログイン中...')
-    await page.goto('https://note.com/login', { waitUntil: 'networkidle' })
-    await page.fill('input[name="email"]', email)
-    await page.fill('input[name="password"]', password)
+    await page.goto('https://note.com/login', { waitUntil: 'domcontentloaded' })
+    await page.waitForTimeout(3000)
+
+    // メールアドレス入力（複数セレクターを試行）
+    const emailSelectors = [
+      'input[name="email"]',
+      'input[type="email"]',
+      'input[placeholder*="メール"]',
+      'input[placeholder*="email"]',
+      '#email',
+    ]
+    let emailFilled = false
+    for (const sel of emailSelectors) {
+      try {
+        await page.fill(sel, email, { timeout: 5000 })
+        emailFilled = true
+        console.log(`✅ メール入力: ${sel}`)
+        break
+      } catch {}
+    }
+    if (!emailFilled) throw new Error('メールアドレス入力欄が見つかりません')
+
+    // パスワード入力
+    const passwordSelectors = [
+      'input[name="password"]',
+      'input[type="password"]',
+      'input[placeholder*="パスワード"]',
+      '#password',
+    ]
+    let passwordFilled = false
+    for (const sel of passwordSelectors) {
+      try {
+        await page.fill(sel, password, { timeout: 5000 })
+        passwordFilled = true
+        console.log(`✅ パスワード入力: ${sel}`)
+        break
+      } catch {}
+    }
+    if (!passwordFilled) throw new Error('パスワード入力欄が見つかりません')
+
     await page.click('button[type="submit"]')
-    await page.waitForNavigation({ waitUntil: 'networkidle' })
+    await page.waitForTimeout(3000)
     console.log('✅ ログイン完了')
 
     // 新規記事作成ページへ
