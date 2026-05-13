@@ -97,41 +97,97 @@ export async function postToNote(title, body) {
 
     // 新規記事作成ページへ
     console.log('✍️ 新規記事を作成中...')
-    await page.goto('https://note.com/notes/new', { waitUntil: 'networkidle' })
-    await page.waitForTimeout(2000)
+    await page.goto('https://note.com/notes/new', { waitUntil: 'domcontentloaded' })
+    await page.waitForTimeout(4000)
 
-    // タイトル入力
-    const titleSelector = '[placeholder="タイトル"], [data-placeholder="タイトル"], .title-input, textarea[class*="title"]'
-    await page.waitForSelector(titleSelector, { timeout: 10000 })
-    await page.click(titleSelector)
-    await page.fill(titleSelector, title)
-
-    // 本文入力（Markdownをプレーンテキストに変換）
+    // Markdownをプレーンテキストに変換
     const plainBody = body
-      .replace(/^#+\s+/gm, '')           // 見出しのシャープを除去
-      .replace(/\*\*(.+?)\*\*/g, '$1')   // 太字
-      .replace(/\[(.+?)\]\(.+?\)/g, '$1') // リンク
-      .replace(/^>\s*/gm, '')             // 引用
-      .replace(/`(.+?)`/g, '$1')          // インラインコード
+      .replace(/^#+\s+/gm, '')
+      .replace(/\*\*(.+?)\*\*/g, '$1')
+      .replace(/\[(.+?)\]\(.+?\)/g, '$1')
+      .replace(/^>\s*/gm, '')
+      .replace(/`(.+?)`/g, '$1')
       .trim()
 
-    const bodySelector = '[placeholder="本文を書く"], [data-placeholder="本文"], .ProseMirror, [contenteditable="true"]:not([class*="title"])'
-    await page.waitForSelector(bodySelector, { timeout: 10000 })
-    await page.click(bodySelector)
-    await page.keyboard.type(plainBody, { delay: 5 })
+    // タイトル入力（contenteditable対応）
+    const titleSelectors = [
+      '[placeholder="タイトル"]',
+      '[data-placeholder="タイトル"]',
+      'h1[contenteditable]',
+      'div[contenteditable="true"]:first-of-type',
+      '.title',
+    ]
+    let titleDone = false
+    for (const sel of titleSelectors) {
+      try {
+        const el = page.locator(sel).first()
+        await el.waitFor({ timeout: 5000 })
+        await el.click()
+        await el.fill(title).catch(() => page.keyboard.type(title))
+        titleDone = true
+        console.log(`✅ タイトル入力: ${sel}`)
+        break
+      } catch {}
+    }
+    if (!titleDone) throw new Error('タイトル入力欄が見つかりません')
+
+    await page.keyboard.press('Tab')
+    await page.waitForTimeout(500)
+
+    // 本文入力
+    const bodySelectors = [
+      '.ProseMirror',
+      '[contenteditable="true"]:not(:first-of-type)',
+      '[placeholder="本文を書く"]',
+      '[data-placeholder="本文を書く"]',
+    ]
+    let bodyDone = false
+    for (const sel of bodySelectors) {
+      try {
+        const el = page.locator(sel).first()
+        await el.waitFor({ timeout: 5000 })
+        await el.click()
+        await page.keyboard.type(plainBody.slice(0, 2000), { delay: 3 })
+        bodyDone = true
+        console.log(`✅ 本文入力: ${sel}`)
+        break
+      } catch {}
+    }
+    if (!bodyDone) throw new Error('本文入力欄が見つかりません')
 
     // 公開ボタンをクリック
     await page.waitForTimeout(1000)
-    const publishBtn = page.locator('button:has-text("公開"), button:has-text("投稿")')
-    await publishBtn.first().click()
+    const publishBtnSelectors = [
+      'button:has-text("公開")',
+      'button:has-text("投稿")',
+      'button:has-text("公開する")',
+    ]
+    for (const sel of publishBtnSelectors) {
+      try {
+        await page.click(sel, { timeout: 5000 })
+        console.log(`✅ 公開ボタンクリック: ${sel}`)
+        break
+      } catch {}
+    }
     await page.waitForTimeout(2000)
 
     // 公開確認ダイアログ
-    const confirmBtn = page.locator('button:has-text("公開する"), button:has-text("投稿する")')
-    if (await confirmBtn.count() > 0) {
-      await confirmBtn.first().click()
-      await page.waitForTimeout(3000)
+    const confirmSelectors = [
+      'button:has-text("公開する")',
+      'button:has-text("投稿する")',
+      'button:has-text("OK")',
+    ]
+    for (const sel of confirmSelectors) {
+      try {
+        const btn = page.locator(sel)
+        if (await btn.count() > 0) {
+          await btn.first().click()
+          console.log(`✅ 確認ボタンクリック: ${sel}`)
+          break
+        }
+      } catch {}
     }
+    await page.waitForTimeout(3000)
 
     const url = page.url()
     console.log(`✅ note投稿完了: ${url}`)
