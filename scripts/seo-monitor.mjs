@@ -25,7 +25,7 @@ import { fileURLToPath } from 'url'
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 
-const SITE_URL = 'https://freelance-articles.vercel.app'
+const SITE_URL = 'https://freelance-articles.vercel.app/'
 const POSITION_THRESHOLD = 20   // 平均順位がこれ以下なら改善対象
 const CTR_THRESHOLD = 0.01      // CTRがこれ未満なら改善対象（1%）
 const DAYS = 28                 // 分析期間（日）
@@ -54,9 +54,6 @@ async function getSearchPerformance() {
   }
 
   const decoded = Buffer.from(keyJson.replace(/\s/g, ''), 'base64').toString('utf8').trim()
-  console.log('JSONデコード確認:', decoded.slice(0, 20), '...', decoded.slice(-20))
-  console.log('全長:', decoded.length)
-  console.log('位置2370-2390:', JSON.stringify(decoded.slice(2370, 2390)))
   const credentials = JSON.parse(decoded)
 
   const auth = new google.auth.GoogleAuth({
