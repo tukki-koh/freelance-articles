@@ -11,6 +11,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.2",
     "@octokit/rest": "^22.0.1",
+    "googleapis": "^171.4.0",
     "gray-matter": "^4.0.3",
     "next": "16.2.6",
     "react": "19.2.4",

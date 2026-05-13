@@ -1,4 +1,4 @@
-name: 週次自動運用（ニュース監視・記事公開・X投稿）
+name: 週次自動運用（ニュース監視・記事公開・X投稿・SEO改善）
 
 on:
   schedule:
@@ -6,6 +6,8 @@ on:
     - cron: '0 23 * * 0'
     # 水曜 朝9時 JST（既存記事をXに週1本投稿）
     - cron: '0 0 * * 3'
+    # 木曜 朝7時 JST（SEO監視 → 低順位記事を自動改善）
+    - cron: '0 22 * * 3'
 
   # 手動実行（テスト用）
   workflow_dispatch:
@@ -18,6 +20,7 @@ on:
         options:
           - monitor   # ニュース監視 → 記事生成 → X投稿
           - post      # 既存記事をXに投稿
+          - seo       # SEO監視 → 低順位記事を自動改善
 
 jobs:
   # ================================================================
@@ -101,4 +104,41 @@ jobs:
         if: always()
         run: |
           echo "## 水曜X投稿 結果" >> $GITHUB_STEP_SUMMARY
+          echo "実行日時: $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')" >> $GITHUB_STEP_SUMMARY
+
+  # ================================================================
+  # JOB 3: SEO監視 → 低順位記事を自動リライト
+  # 毎週木曜 朝7時 JST
+  # ================================================================
+  seo-improve:
+    name: SEO監視・低順位記事自動改善
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'seo' ||
+      github.event_name == 'schedule' && github.event.schedule == '0 22 * * 3'
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: SEO監視 → 低順位記事を改善
+        env:
+          GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/seo-monitor.mjs
+
+      - name: 実行結果
+        if: always()
+        run: |
+          echo "## 木曜SEO改善 結果" >> $GITHUB_STEP_SUMMARY
           echo "実行日時: $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')" >> $GITHUB_STEP_SUMMARY
