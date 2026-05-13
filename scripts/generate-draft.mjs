@@ -183,6 +183,15 @@ async function publishArticle(slug, content) {
     (_, open, items, close) => `${open}${items}${newEntry}\n${close}`
   )
 
+  // 既存ファイルのSHAを取得（更新時に必要）
+  let existingSha
+  try {
+    const { data: existing } = await octokit.repos.getContent({ owner, repo, path: `${slug}.md` })
+    existingSha = existing.sha
+  } catch {
+    // ファイルが存在しない場合はそのまま新規作成
+  }
+
   // 記事ファイルをコミット
   await octokit.repos.createOrUpdateFileContents({
     owner, repo,
@@ -190,6 +199,7 @@ async function publishArticle(slug, content) {
     message: `feat: 新着記事「${slug}」を自動公開`,
     content: Buffer.from(content).toString('base64'),
     branch: 'main',
+    ...(existingSha ? { sha: existingSha } : {}),
   })
 
   console.log(`✅ 記事を公開: ${slug}.md`)
