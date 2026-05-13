@@ -225,7 +225,8 @@ async function postToX(title, description, articleUrl) {
   const text = `【フリーランス新法】${title}\n\n${description.slice(0, 80)}...\n\n詳しくはこちら👇\n${articleUrl}`
 
   try {
-    const { data } = await client.v2.tweet(text)
+    const rwClient = client.readWrite
+    const { data } = await rwClient.v2.tweet(text)
     console.log(`✅ X投稿完了: https://x.com/i/web/status/${data.id}`)
     return data.id
   } catch (err) {
