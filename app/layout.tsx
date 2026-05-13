@@ -10,6 +10,9 @@ const geistSans = Geist({
 export const metadata: Metadata = {
   title: "フリーランス新法 契約書チェック ガイド",
   description: "フリーランス新法・下請法に関する実践的な解説記事。支払い期日・返品禁止・買いたたき・解除予告など、フリーランスと発注企業が知るべき法律知識をわかりやすく解説します。",
+  verification: {
+    google: "yRI78JJGL2gw663JYPdPRHUFfWEef4FQLNvZOC8x18k",
+  },
 };
 
 export default function RootLayout({
