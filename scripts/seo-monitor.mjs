@@ -53,7 +53,7 @@ async function getSearchPerformance() {
     throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY が設定されていません')
   }
 
-  const credentials = JSON.parse(Buffer.from(keyJson, 'base64').toString('utf8'))
+  const credentials = JSON.parse(Buffer.from(keyJson.replace(/\s/g, ''), 'base64').toString('utf8'))
 
   const auth = new google.auth.GoogleAuth({
     credentials,
