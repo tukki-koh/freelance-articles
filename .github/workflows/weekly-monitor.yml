@@ -1,43 +1,104 @@
-name: 週次ニュース監視 & 記事下書き自動生成
+name: 週次自動運用（ニュース監視・記事公開・X投稿）
 
 on:
-  # 毎週月曜日 朝8時（JST）に自動実行
   schedule:
-    - cron: '0 23 * * 0'  # UTC 23:00 = JST 月曜 08:00
+    # 月曜 朝8時 JST（ニュース監視 → 記事生成 → Vercel公開 → X投稿）
+    - cron: '0 23 * * 0'
+    # 水曜 朝9時 JST（既存記事をXに週1本投稿）
+    - cron: '0 0 * * 3'
 
-  # 手動実行ボタン（GitHub上から即時テスト可能）
+  # 手動実行（テスト用）
   workflow_dispatch:
+    inputs:
+      job:
+        description: '実行するジョブ'
+        required: true
+        default: 'monitor'
+        type: choice
+        options:
+          - monitor   # ニュース監視 → 記事生成 → X投稿
+          - post      # 既存記事をXに投稿
 
 jobs:
-  generate-draft:
+  # ================================================================
+  # JOB 1: ニュース監視 → Claude記事生成 → 自動公開 → X投稿
+  # 毎週月曜 朝8時
+  # ================================================================
+  news-monitor:
+    name: ニュース監視・記事自動生成
     runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'monitor' ||
+      github.event_name == 'schedule' && github.event.schedule == '0 23 * * 0'
     permissions:
       contents: write
-      pull-requests: write
 
     steps:
-      - name: リポジトリをチェックアウト
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Node.js セットアップ
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
-      - name: 依存関係インストール
-        run: npm ci
+      - run: npm ci
 
-      - name: ニュース監視 & 下書き生成
+      - name: ニュース監視 → 記事生成 → X投稿
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
         run: node scripts/generate-draft.mjs
 
-      - name: 実行結果をサマリーに表示
+      - name: 実行結果
         if: always()
         run: |
-          echo "## 実行結果" >> $GITHUB_STEP_SUMMARY
-          echo "実行日時: $(date '+%Y-%m-%d %H:%M JST')" >> $GITHUB_STEP_SUMMARY
-          echo "新しいPRが作成された場合はPull Requestsタブを確認してください。" >> $GITHUB_STEP_SUMMARY
+          echo "## 月曜自動実行 結果" >> $GITHUB_STEP_SUMMARY
+          echo "実行日時: $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')" >> $GITHUB_STEP_SUMMARY
+
+  # ================================================================
+  # JOB 2: 既存10記事をXに週1本ずつ投稿
+  # 毎週水曜 朝9時
+  # ================================================================
+  scheduled-post:
+    name: 既存記事のX定期投稿
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'post' ||
+      github.event_name == 'schedule' && github.event.schedule == '0 0 * * 3'
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: 既存記事をXに投稿
+        env:
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+        run: node scripts/post-scheduled.mjs
+
+      - name: 投稿状態を保存
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: X投稿状態を更新'
+          file_pattern: 'scripts/.post-queue-state.json'
+
+      - name: 実行結果
+        if: always()
+        run: |
+          echo "## 水曜X投稿 結果" >> $GITHUB_STEP_SUMMARY
+          echo "実行日時: $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')" >> $GITHUB_STEP_SUMMARY

@@ -1,17 +1,19 @@
 #!/usr/bin/env node
 /**
- * フリーランス新法ニュース自動監視 → Claude下書き生成 → GitHub PR作成
+ * フリーランス新法ニュース自動監視 → Claude下書き生成 → 公開 → X投稿
  *
  * 動作：
- * 1. 複数のRSSフィードから法改正・関連ニュースを取得
+ * 1. RSSフィードから法改正・関連ニュースを取得
  * 2. 直近7日以内の新着を抽出
- * 3. Claude APIで1500字のSEO記事下書きを生成
- * 4. GitHubにPRを作成（スマホでマージ→Vercel自動デプロイ）
+ * 3. Claude APIで1500字のSEO記事を生成
+ * 4. mainブランチに直接コミット（Vercel自動デプロイ）
+ * 5. X（Twitter）に自動投稿
  */
 
 import Anthropic from '@anthropic-ai/sdk'
 import Parser from 'rss-parser'
 import { Octokit } from '@octokit/rest'
+import { TwitterApi } from 'twitter-api-v2'
 import { readFileSync, writeFileSync, existsSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
@@ -20,32 +22,27 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 
 // ================================================================
-// RSS フィード一覧（厚労省・公取委・e-Gov・Google News）
+// RSS フィード一覧
 // ================================================================
 const RSS_FEEDS = [
   {
-    name: '厚生労働省 新着情報',
-    url: 'https://www.mhlw.go.jp/stf/news/index.html',
+    name: '厚生労働省',
     rss: 'https://www.mhlw.go.jp/rss/new.rdf',
   },
   {
-    name: '公正取引委員会 新着情報',
-    url: 'https://www.jftc.go.jp/',
+    name: '公正取引委員会',
     rss: 'https://www.jftc.go.jp/rss/index.xml',
   },
   {
     name: 'Google News - フリーランス新法',
-    url: 'https://news.google.com/',
     rss: 'https://news.google.com/rss/search?q=%E3%83%95%E3%83%AA%E3%83%BC%E3%83%A9%E3%83%B3%E3%82%B9+%E6%96%B0%E6%B3%95&hl=ja&gl=JP&ceid=JP:ja',
   },
   {
     name: 'Google News - 業務委託 法律',
-    url: 'https://news.google.com/',
     rss: 'https://news.google.com/rss/search?q=%E6%A5%AD%E5%8B%99%E5%A7%94%E8%A8%97+%E6%B3%95%E5%BE%8B+%E6%94%B9%E6%AD%A3&hl=ja&gl=JP&ceid=JP:ja',
   },
   {
     name: 'Google News - 下請法',
-    url: 'https://news.google.com/',
     rss: 'https://news.google.com/rss/search?q=%E4%B8%8B%E8%AB%8B%E6%B3%95+%E6%94%B9%E6%AD%A3&hl=ja&gl=JP&ceid=JP:ja',
   },
 ]
@@ -61,9 +58,7 @@ const KEYWORDS = [
 // ================================================================
 function loadSeenItems() {
   const path = join(ROOT, 'scripts', '.seen-items.json')
-  if (existsSync(path)) {
-    return new Set(JSON.parse(readFileSync(path, 'utf8')))
-  }
+  if (existsSync(path)) return new Set(JSON.parse(readFileSync(path, 'utf8')))
   return new Set()
 }
 
@@ -86,14 +81,12 @@ function isRelevant(item) {
 
 function toSlug(title) {
   const date = new Date().toISOString().slice(0, 10)
-  const short = title
-    .replace(/[^぀-ヿ一-鿿㐀-䶿a-zA-Z0-9]/g, '-')
-    .slice(0, 40)
-  return `news-${date}-${short}`.toLowerCase().replace(/-+/g, '-')
+  const short = title.replace(/[^\w]/g, '-').slice(0, 30)
+  return `news-${date}-${short}`.toLowerCase().replace(/-+/g, '-').replace(/-$/, '')
 }
 
 // ================================================================
-// Step 1: RSSフィードを取得して新着を抽出
+// Step 1: RSSフィードから新着を取得
 // ================================================================
 async function fetchNewItems() {
   const parser = new Parser({ timeout: 10000 })
@@ -112,21 +105,19 @@ async function fetchNewItems() {
         newItems.push({ ...item, sourceName: feed.name, id })
       }
     } catch (e) {
-      console.warn(`⚠️ Failed to fetch ${feed.name}: ${e.message}`)
+      console.warn(`⚠️ Failed: ${feed.name}: ${e.message}`)
     }
   }
 
-  console.log(`✅ Found ${newItems.length} new relevant items`)
+  console.log(`✅ ${newItems.length}件の新着ニュースを発見`)
   return { newItems, seen }
 }
 
 // ================================================================
-// Step 2: Claude APIで記事下書きを生成
+// Step 2: Claude APIで記事を生成
 // ================================================================
-async function generateDraft(items) {
-  const client = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-  })
+async function generateArticle(items) {
+  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
   const newsText = items
     .slice(0, 5)
@@ -136,11 +127,10 @@ async function generateDraft(items) {
   const message = await client.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 4096,
-    messages: [
-      {
-        role: 'user',
-        content: `あなたはフリーランス新法・下請法の専門ライターです。
-以下の最新ニュース・法改正情報をもとに、フリーランスと中小企業の発注担当者向けSEO記事の下書きを作成してください。
+    messages: [{
+      role: 'user',
+      content: `あなたはフリーランス新法・下請法の専門ライターです。
+以下の最新ニュース・法改正情報をもとに、フリーランスと中小企業の発注担当者向けSEO記事を作成してください。
 
 【最新ニュース】
 ${newsText}
@@ -148,69 +138,88 @@ ${newsText}
 【記事要件】
 - 文字数：1200〜1600字
 - 構成：見出し（H1・H2・H3）付きのMarkdown
-- 冒頭にメタディスクリプション（**メタディスクリプション：** で始める）
+- 1行目：# タイトル（SEOを意識した具体的なタイトル）
+- 2行目：空行
+- 3行目：**メタディスクリプション：** 〜（120字以内）
 - フリーランス新法・下請法の条文番号を根拠として引用
-- 読者が「へえ、知らなかった！」と思える具体的な事例を含める
-- 末尾にCTA：「契約書のリスクをAIでチェック → https://freelance-contract-checker.vercel.app」
-- ハルシネーション防止：不確かな情報は「要確認」と明記
+- 読者が「知らなかった！」と思える具体的な事例を含める
+- 不確かな情報は「要確認」と明記
+- 末尾のCTA（変更不可）：
+  > **👉 契約書のリスクをAIでチェック → https://freelance-contract-checker.vercel.app**
 
-記事タイトル（H1）と本文のみ出力してください。前置き不要。`,
-      },
-    ],
+記事本文のみ出力。前置き不要。`,
+    }],
   })
 
-  return message.content[0].text
+  const content = message.content[0].text
+
+  // タイトルとメタディスクリプションを抽出（X投稿用）
+  const titleMatch = content.match(/^#\s+(.+)$/m)
+  const descMatch = content.match(/\*\*メタディスクリプション：\*\*\s*(.+)/)
+  const title = titleMatch?.[1] ?? items[0]?.title ?? '新着情報'
+  const description = descMatch?.[1] ?? ''
+
+  return { content, title, description }
 }
 
 // ================================================================
-// Step 3: GitHubにPRを作成
+// Step 3: GitHubのmainブランチに直接コミット（Vercel自動デプロイ）
 // ================================================================
-async function createPullRequest(slug, content, items) {
+async function publishArticle(slug, content) {
   const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN })
-  const [owner, repo] = (process.env.GITHUB_REPOSITORY ?? 'owner/repo').split('/')
+  const [owner, repo] = (process.env.GITHUB_REPOSITORY ?? '').split('/')
 
-  const fileName = `${slug}.md`
-  const filePath = fileName
-  const branch = `draft/${slug}`
-  const title = items[0]?.title ?? '新着ニュース下書き'
+  // lib/articles.ts のSLUG一覧に追加
+  const articlesPath = 'lib/articles.ts'
+  const { data: articlesFile } = await octokit.repos.getContent({ owner, repo, path: articlesPath })
+  const currentContent = Buffer.from(articlesFile.content, 'base64').toString('utf8')
 
-  // mainブランチのSHAを取得
-  const { data: ref } = await octokit.git.getRef({
-    owner, repo, ref: 'heads/main',
-  })
+  const newEntry = `  { slug: '${slug}', file: '${slug}.md' },`
+  const updatedContent = currentContent.replace(
+    /(\] *\/\/ END_ARTICLES|const ARTICLE_FILES = \[)/,
+    (match) => match.includes('END') ? match : match
+  ).replace(
+    /(const ARTICLE_FILES[^=]*=\s*\[)([\s\S]*?)(\])/,
+    (_, open, items, close) => `${open}${items}${newEntry}\n${close}`
+  )
 
-  // 新しいブランチを作成
-  await octokit.git.createRef({
-    owner, repo,
-    ref: `refs/heads/${branch}`,
-    sha: ref.object.sha,
-  })
-
-  // ファイルをコミット
+  // 記事ファイルをコミット
   await octokit.repos.createOrUpdateFileContents({
-    owner, repo, branch,
-    path: filePath,
-    message: `draft: ${title}`,
-    content: Buffer.from(content).toString('base64'),
-  })
-
-  // PRを作成
-  const { data: pr } = await octokit.pulls.create({
     owner, repo,
-    title: `📝 下書き: ${title}`,
-    body: `## 自動生成された記事下書き\n\n**ソースニュース:**\n${items.map(i => `- [${i.title}](${i.link})`).join('\n')}\n\n---\n\n✅ マージするとVercelに自動デプロイされます\n❌ 不要な場合はそのままクローズしてください`,
-    head: branch,
-    base: 'main',
+    path: `${slug}.md`,
+    message: `feat: 新着記事「${slug}」を自動公開`,
+    content: Buffer.from(content).toString('base64'),
+    branch: 'main',
   })
 
-  return pr.html_url
+  console.log(`✅ 記事を公開: ${slug}.md`)
+  return `https://freelance-articles.vercel.app/articles/${slug}`
+}
+
+// ================================================================
+// Step 4: X（Twitter）に自動投稿
+// ================================================================
+async function postToX(title, description, articleUrl) {
+  const client = new TwitterApi({
+    appKey: process.env.X_API_KEY,
+    appSecret: process.env.X_API_SECRET,
+    accessToken: process.env.X_ACCESS_TOKEN,
+    accessSecret: process.env.X_ACCESS_SECRET,
+  })
+
+  // 140字以内に収める
+  const text = `【フリーランス新法】${title}\n\n${description.slice(0, 80)}...\n\n詳しくはこちら👇\n${articleUrl}`
+
+  const { data } = await client.v2.tweet(text)
+  console.log(`✅ X投稿完了: https://x.com/i/web/status/${data.id}`)
+  return data.id
 }
 
 // ================================================================
 // メイン処理
 // ================================================================
 async function main() {
-  console.log('🔍 フリーランス新法ニュース監視スクリプト開始')
+  console.log('🔍 フリーランス新法ニュース監視スクリプト開始\n')
 
   const { newItems, seen } = await fetchNewItems()
 
@@ -219,30 +228,32 @@ async function main() {
     return
   }
 
-  console.log('✍️ Claude APIで記事下書きを生成中...')
-  const draft = await generateDraft(newItems)
+  console.log('\n✍️ Claude APIで記事を生成中...')
+  const { content, title, description } = await generateArticle(newItems)
 
-  const slug = toSlug(newItems[0].title)
+  const slug = toSlug(newItems[0].title ?? title)
 
   if (process.env.GITHUB_TOKEN && process.env.GITHUB_REPOSITORY) {
-    console.log('🚀 GitHubにPRを作成中...')
-    const prUrl = await createPullRequest(slug, draft, newItems)
-    console.log(`✅ PR作成完了: ${prUrl}`)
+    console.log('\n🚀 Vercelに自動公開中...')
+    const articleUrl = await publishArticle(slug, content)
+
+    console.log('\n🐦 Xに投稿中...')
+    await postToX(title, description, articleUrl)
+
+    console.log(`\n🎉 完了！\n記事URL: ${articleUrl}`)
   } else {
-    // ローカル実行時はファイルに保存
+    // ローカルテスト時
     const outputPath = join(ROOT, `${slug}.draft.md`)
-    writeFileSync(outputPath, draft)
-    console.log(`💾 下書きを保存: ${outputPath}`)
+    writeFileSync(outputPath, content)
+    console.log(`\n💾 ローカル保存: ${outputPath}`)
+    console.log(`タイトル: ${title}`)
   }
 
-  // 処理済みアイテムを記録
   newItems.forEach(item => seen.add(item.id))
   saveSeenItems(seen)
-
-  console.log('🎉 完了！')
 }
 
 main().catch(err => {
-  console.error('❌ エラー:', err)
+  console.error('❌ エラー:', err.message)
   process.exit(1)
 })
