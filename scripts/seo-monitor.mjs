@@ -48,18 +48,17 @@ const ARTICLE_FILES = [
 // Step 1: Search Console APIで検索パフォーマンスを取得
 // ================================================================
 async function getSearchPerformance() {
-  const keyJson = process.env.GOOGLE_SERVICE_ACCOUNT_KEY
-  if (!keyJson) {
-    throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY が設定されていません')
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET
+  const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN
+
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error('GOOGLE_OAUTH_CLIENT_ID / CLIENT_SECRET / REFRESH_TOKEN が設定されていません')
   }
 
-  const decoded = Buffer.from(keyJson.replace(/\s/g, ''), 'base64').toString('utf8').trim()
-  const credentials = JSON.parse(decoded)
-
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/webmasters.readonly'],
-  })
+  const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, 'urn:ietf:wg:oauth:2.0:oob')
+  oauth2Client.setCredentials({ refresh_token: refreshToken })
+  const auth = oauth2Client
 
   const searchConsole = google.searchconsole({ version: 'v1', auth })
 
