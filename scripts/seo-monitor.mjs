@@ -55,6 +55,8 @@ async function getSearchPerformance() {
 
   const decoded = Buffer.from(keyJson.replace(/\s/g, ''), 'base64').toString('utf8').trim()
   console.log('JSONデコード確認:', decoded.slice(0, 20), '...', decoded.slice(-20))
+  console.log('全長:', decoded.length)
+  console.log('位置2370-2390:', JSON.stringify(decoded.slice(2370, 2390)))
   const credentials = JSON.parse(decoded)
 
   const auth = new google.auth.GoogleAuth({
