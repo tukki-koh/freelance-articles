@@ -210,6 +210,10 @@ async function publishArticle(slug, content) {
 // Step 4: X（Twitter）に自動投稿
 // ================================================================
 async function postToX(title, description, articleUrl) {
+  // 認証情報の確認（先頭5文字のみ表示）
+  console.log('X_API_KEY:', process.env.X_API_KEY?.slice(0, 5))
+  console.log('X_ACCESS_TOKEN:', process.env.X_ACCESS_TOKEN?.slice(0, 5))
+
   const client = new TwitterApi({
     appKey: process.env.X_API_KEY,
     appSecret: process.env.X_API_SECRET,
@@ -220,9 +224,14 @@ async function postToX(title, description, articleUrl) {
   // 140字以内に収める
   const text = `【フリーランス新法】${title}\n\n${description.slice(0, 80)}...\n\n詳しくはこちら👇\n${articleUrl}`
 
-  const { data } = await client.v2.tweet(text)
-  console.log(`✅ X投稿完了: https://x.com/i/web/status/${data.id}`)
-  return data.id
+  try {
+    const { data } = await client.v2.tweet(text)
+    console.log(`✅ X投稿完了: https://x.com/i/web/status/${data.id}`)
+    return data.id
+  } catch (err) {
+    console.error('X APIエラー詳細:', JSON.stringify(err?.data ?? err?.message ?? err, null, 2))
+    throw err
+  }
 }
 
 // ================================================================
