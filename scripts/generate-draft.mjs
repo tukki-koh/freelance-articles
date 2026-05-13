@@ -258,7 +258,11 @@ async function main() {
     const articleUrl = await publishArticle(slug, content)
 
     console.log('\n🐦 Xに投稿中...')
-    await postToX(title, description, articleUrl)
+    try {
+      await postToX(title, description, articleUrl)
+    } catch (e) {
+      console.warn(`⚠️ X投稿をスキップ: ${e.message}`)
+    }
 
     console.log(`\n🎉 完了！\n記事URL: ${articleUrl}`)
   } else {
