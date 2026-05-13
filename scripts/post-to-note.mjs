@@ -72,8 +72,27 @@ export async function postToNote(title, body) {
     }
     if (!passwordFilled) throw new Error('パスワード入力欄が見つかりません')
 
-    await page.click('button[type="submit"]')
-    await page.waitForTimeout(3000)
+    // ログインボタンをクリック
+    const loginBtnSelectors = [
+      'button[type="submit"]',
+      'button:has-text("ログイン")',
+      'button:has-text("サインイン")',
+      'input[type="submit"]',
+      'button:has-text("続ける")',
+      'button:has-text("次へ")',
+    ]
+    let loginClicked = false
+    for (const sel of loginBtnSelectors) {
+      try {
+        await page.click(sel, { timeout: 5000 })
+        loginClicked = true
+        console.log(`✅ ログインボタンクリック: ${sel}`)
+        break
+      } catch {}
+    }
+    if (!loginClicked) throw new Error('ログインボタンが見つかりません')
+
+    await page.waitForTimeout(4000)
     console.log('✅ ログイン完了')
 
     // 新規記事作成ページへ
