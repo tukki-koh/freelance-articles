@@ -1,0 +1,43 @@
+name: 週次ニュース監視 & 記事下書き自動生成
+
+on:
+  # 毎週月曜日 朝8時（JST）に自動実行
+  schedule:
+    - cron: '0 23 * * 0'  # UTC 23:00 = JST 月曜 08:00
+
+  # 手動実行ボタン（GitHub上から即時テスト可能）
+  workflow_dispatch:
+
+jobs:
+  generate-draft:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node.js セットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 依存関係インストール
+        run: npm ci
+
+      - name: ニュース監視 & 下書き生成
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/generate-draft.mjs
+
+      - name: 実行結果をサマリーに表示
+        if: always()
+        run: |
+          echo "## 実行結果" >> $GITHUB_STEP_SUMMARY
+          echo "実行日時: $(date '+%Y-%m-%d %H:%M JST')" >> $GITHUB_STEP_SUMMARY
+          echo "新しいPRが作成された場合はPull Requestsタブを確認してください。" >> $GITHUB_STEP_SUMMARY
