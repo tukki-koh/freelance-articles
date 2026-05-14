@@ -10,6 +10,8 @@ on:
     - cron: '0 0 * * 3'
     # 木曜 朝7時 JST（SEO監視 → 低順位記事を自動改善）
     - cron: '0 22 * * 3'
+    # 土曜 朝9時 JST（クオリティ基準記事を自動生成・公開）
+    - cron: '0 0 * * 6'
 
   # 手動実行（テスト用）
   workflow_dispatch:
@@ -20,10 +22,11 @@ on:
         default: 'monitor'
         type: choice
         options:
-          - monitor   # ニュース監視 → 記事生成 → X投稿
-          - post      # 既存記事をXに投稿
-          - seo       # SEO監視 → 低順位記事を自動改善
-          - note      # 既存記事をnoteに投稿
+          - monitor        # ニュース監視 → 記事生成 → X投稿
+          - post           # 既存記事をXに投稿
+          - seo            # SEO監視 → 低順位記事を自動改善
+          - note           # 既存記事をnoteに投稿
+          - quality-article # クオリティ基準記事を生成・公開
 
 jobs:
   # ================================================================
@@ -195,4 +198,40 @@ jobs:
         if: always()
         run: |
           echo "## 火曜note投稿 結果" >> $GITHUB_STEP_SUMMARY
+          echo "実行日時: $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')" >> $GITHUB_STEP_SUMMARY
+
+  # ================================================================
+  # JOB 5: クオリティ基準準拠の記事を自動生成・公開
+  # 毎週土曜 朝9時 JST
+  # ================================================================
+  quality-article:
+    name: クオリティ記事自動生成・公開
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'quality-article' ||
+      github.event_name == 'schedule' && github.event.schedule == '0 0 * * 6'
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: クオリティ基準記事を生成してGitHubにコミット
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/generate-quality-article.mjs
+
+      - name: 実行結果
+        if: always()
+        run: |
+          echo "## 土曜クオリティ記事生成 結果" >> $GITHUB_STEP_SUMMARY
           echo "実行日時: $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')" >> $GITHUB_STEP_SUMMARY
