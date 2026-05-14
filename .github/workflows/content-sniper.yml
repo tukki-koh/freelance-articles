@@ -1,0 +1,61 @@
+name: コンテンツ・スナイパー（月次戦略実行）
+
+# ================================================================
+# 月1回「Run workflow」ボタンを押すだけで全自動実行
+# ================================================================
+on:
+  # 手動実行（月1回ボタンを押すだけ）
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '実行モード'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full          # 全処理（分析 → リライト → 新規記事 → 内部リンク）
+          - analyze-only  # 分析レポートのみ（実際の変更なし）
+          - rewrite-only  # リライトのみ
+          - new-articles  # 新規記事生成のみ
+
+  # 毎月1日 朝9時 JST に自動実行
+  schedule:
+    - cron: '0 0 1 * *'
+
+jobs:
+  sniper:
+    name: コンテンツ・スナイパー実行
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: コンテンツ・スナイパー実行
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          GOOGLE_OAUTH_REFRESH_TOKEN: ${{ secrets.GOOGLE_OAUTH_REFRESH_TOKEN }}
+          SNIPER_MODE: ${{ github.event.inputs.mode || 'full' }}
+        run: node scripts/content-sniper.mjs
+
+      - name: 実行結果をサマリーに表示
+        if: always()
+        run: |
+          echo "## 🎯 コンテンツ・スナイパー 実行完了" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "実行日時: $(TZ=Asia/Tokyo date '+%Y年%m月%d日 %H:%M JST')" >> $GITHUB_STEP_SUMMARY
+          echo "モード: ${{ github.event.inputs.mode || 'full（自動）' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "レポートは \`reports/\` フォルダに保存されました。" >> $GITHUB_STEP_SUMMARY
