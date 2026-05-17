@@ -1,0 +1,53 @@
+name: 営業メール自動生成（毎週火曜 10時）
+
+on:
+  # 毎週火曜 10:00 JST（= UTC 01:00）
+  schedule:
+    - cron: '0 1 * * 2'
+
+  # 手動実行（テスト用）
+  workflow_dispatch:
+    inputs:
+      type:
+        description: '送信タイプ'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - both   # B2B + B2C 両方
+          - b2b    # 企業向けのみ
+          - b2c    # 個人向けのみ
+
+jobs:
+  send-sales-emails:
+    name: 営業メール下書き生成
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: 営業メールをGmail下書きに保存
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+          GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+          GMAIL_FROM_EMAIL: ${{ secrets.GMAIL_FROM_EMAIL }}
+        run: node scripts/generate-sales-emails.mjs --type ${{ github.event.inputs.type || 'both' }}
+
+      - name: 実行結果
+        if: always()
+        run: |
+          echo "## 📧 営業メール自動生成 完了" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "実行日時: $(TZ=Asia/Tokyo date '+%Y年%m月%d日 %H:%M JST')" >> $GITHUB_STEP_SUMMARY
+          echo "タイプ: ${{ github.event.inputs.type || 'both（自動）' }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Gmailの下書きを確認して送信してください 👉 https://mail.google.com/#drafts" >> $GITHUB_STEP_SUMMARY
