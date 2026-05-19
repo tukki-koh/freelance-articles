@@ -1,0 +1,33 @@
+name: Supabase 停止防止（3日ごと）
+
+on:
+  schedule:
+    # 3日ごと 朝9時 JST（= UTC 00:00）
+    - cron: '0 0 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    name: Supabase 生存確認
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Supabase にアクセスして停止を防ぐ
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/" \
+            -H "apikey: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}")
+          echo "Supabase レスポンス: $STATUS"
+          if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 500 ]; then
+            echo "✅ Supabase は正常に動作しています"
+          else
+            echo "❌ Supabase への接続に失敗しました (HTTP $STATUS)"
+            exit 1
+          fi
+
+      - name: 結果をサマリーに表示
+        if: always()
+        run: |
+          echo "## 🟢 Supabase 生存確認" >> $GITHUB_STEP_SUMMARY
+          echo "実行日時: $(TZ=Asia/Tokyo date '+%Y年%m月%d日 %H:%M JST')" >> $GITHUB_STEP_SUMMARY
