@@ -181,6 +181,26 @@ async function generateArticle(theme) {
 - 「→ 今の契約書の違反リスクを30秒で確認する」
 - 「→ 500円で契約書を守る（専門知識不要）」
 
+【視覚要素の必須ルール】
+記事には以下の視覚要素を必ず1つ以上含めること：
+
+1. **Mermaidフローチャート**（手順・判断フロー・比較に使用）
+   ~~~mermaid
+   flowchart TD
+     A[開始] --> B{条件}
+     B -->|はい| C[結果1]
+     B -->|いいえ| D[結果2]
+   ~~~
+
+2. **カラーボックス**（重要情報の強調）
+   <div class="info-box">💡 <strong>ポイント</strong><br>ここに重要な情報</div>
+   <div class="warn-box">⚠️ <strong>注意</strong><br>ここに注意事項</div>
+   <div class="danger-box">🚨 <strong>違反リスク</strong><br>ここに違反情報</div>
+   <div class="check-box">✅ <strong>チェックポイント</strong><br>ここに確認事項</div>
+   <div class="summary-box">📋 <strong>まとめ</strong><br>ここにまとめ</div>
+
+3. **わかりやすい表**（比較・一覧に使用、最大3列）
+
 【記事の構造】
 # タイトル
 **メタディスクリプション：** （120文字以内）
@@ -189,7 +209,7 @@ async function generateArticle(theme) {
 ## 共感の冒頭（ユーザーの状況描写）
 ## 結論（断定）
 > CTA（結論直下）
-## 詳細解説（h2×3〜4個、各自に条文番号）
+## 詳細解説（h2×3〜4個、各自に条文番号＋視覚要素）
 > CTA（中盤）
 ## 今すぐできること
 > CTA（末尾）`

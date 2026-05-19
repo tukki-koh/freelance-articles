@@ -3,6 +3,7 @@ import path from 'path'
 import matter from 'gray-matter'
 import { remark } from 'remark'
 import remarkHtml from 'remark-html'
+import remarkGfm from 'remark-gfm'
 
 const ROOT = path.join(process.cwd())
 
@@ -53,7 +54,7 @@ export async function getArticle(slug: string): Promise<Article | null> {
   const { content } = matter(raw)
   const meta = extractMeta(content, slug)
 
-  const processed = await remark().use(remarkHtml, { sanitize: false }).process(content)
+  const processed = await remark().use(remarkGfm).use(remarkHtml, { sanitize: false }).process(content)
   return { ...meta, contentHtml: processed.toString() }
 }
 
