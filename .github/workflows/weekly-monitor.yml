@@ -182,10 +182,10 @@ jobs:
       - name: Playwrightブラウザをインストール
         run: npx playwright install chromium --with-deps
 
+      - name: noteセッションファイルを復元
+        run: echo '${{ secrets.NOTE_SESSION_JSON }}' > scripts/.note-session.json
+
       - name: 既存記事をnoteに投稿
-        env:
-          NOTE_EMAIL: ${{ secrets.NOTE_EMAIL }}
-          NOTE_PASSWORD: ${{ secrets.NOTE_PASSWORD }}
         run: node scripts/note-scheduled.mjs
 
       - name: 投稿状態を保存
