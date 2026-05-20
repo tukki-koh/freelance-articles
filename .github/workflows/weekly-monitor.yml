@@ -81,9 +81,9 @@ jobs:
   scheduled-post:
     name: 既存記事のX定期投稿
     runs-on: ubuntu-latest
+    # X API は有料プランが必要なため、手動実行のみ有効（スケジュール実行は無効）
     if: |
-      github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'post' ||
-      github.event_name == 'schedule' && github.event.schedule == '0 0 * * 3'
+      github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'post'
     permissions:
       contents: write
 
