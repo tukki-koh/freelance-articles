@@ -1,22 +1,13 @@
 import { MetadataRoute } from 'next'
+import { getAllSlugs } from '@/lib/articles'
 
 const BASE_URL = 'https://freelance-articles.vercel.app'
 
-const SLUGS = [
-  '60day-rule-violation',
-  'contract-checklist',
-  'price-undercutting',
-  'late-payment-response',
-  'subcontract-law-applicability',
-  'instant-termination-illegal',
-  'return-prohibition',
-  'sme-freelance-ordering-caution',
-  'revision-cost-liability',
-  'harassment-prevention',
-]
-
 export default function sitemap(): MetadataRoute.Sitemap {
-  const articles = SLUGS.map((slug) => ({
+  // 全記事を動的に取得（新記事追加時も自動反映）
+  const slugs = getAllSlugs()
+
+  const articles = slugs.map((slug) => ({
     url: `${BASE_URL}/articles/${slug}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,

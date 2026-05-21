@@ -8,8 +8,20 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "フリーランス新法 契約書チェック ガイド",
-  description: "フリーランス新法・下請法に関する実践的な解説記事。支払い期日・返品禁止・買いたたき・解除予告など、フリーランスと発注企業が知るべき法律知識をわかりやすく解説します。",
+  title: "フリーランス新法ガイド｜契約書・下請法・支払いトラブル 実践解説",
+  description: "フリーランス新法・下請法に関する実践的な解説記事。支払い期日60日・返品禁止・買いたたき・解除予告など、フリーランスと発注企業が知るべき法律知識をわかりやすく解説します。",
+  keywords: ['フリーランス新法', '下請法', '業務委託', '契約書', 'フリーランス', '支払い遅延', '買いたたき'],
+  openGraph: {
+    title: 'フリーランス新法ガイド｜契約書・下請法 実践解説',
+    description: 'フリーランス新法・下請法の実践解説。支払い期日・買いたたき・契約解除など条文番号付きで解説。',
+    url: 'https://freelance-articles.vercel.app',
+    siteName: 'フリーランス新法ガイド',
+    locale: 'ja_JP',
+    type: 'website',
+  },
+  alternates: {
+    canonical: 'https://freelance-articles.vercel.app',
+  },
   other: {
     'google-site-verification': 'yRI78JJGL2gw663JYPdPRHUFfWEef4FQLNvZOC8x18k',
   },

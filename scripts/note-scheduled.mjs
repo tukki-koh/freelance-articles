@@ -23,6 +23,11 @@ const ARTICLE_FILES = [
   { slug: 'sme-freelance-ordering-caution',file: '08_sme-freelance-ordering-caution.md' },
   { slug: 'revision-cost-liability',       file: '09_revision-cost-liability.md' },
   { slug: 'harassment-prevention',         file: '10_harassment-prevention.md' },
+  { slug: 'freelance-law-applicable-check',file: '11_freelance-law-applicable-check.md' },
+  { slug: 'dangerous-contract-clauses',    file: '12_dangerous-contract-clauses.md' },
+  { slug: 'unpaid-freelance-response',     file: '13_unpaid-freelance-response.md' },
+  { slug: 'ordering-side-compliance',      file: '14_ordering-side-compliance.md' },
+  { slug: 'freelance-law-vs-subcontract-law', file: '15_freelance-law-vs-subcontract-law.md' },
 ]
 
 const STATE_FILE = join(ROOT, 'scripts', '.note-queue-state.json')
