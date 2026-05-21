@@ -4,12 +4,14 @@ on:
   schedule:
     # 月曜 朝8時 JST（ニュース監視 → 記事生成 → Vercel公開 → X投稿）
     - cron: '0 23 * * 0'
-    # 火曜 朝8時 JST（既存記事をnoteに週1本投稿）
+    # 火曜 朝8時 JST（既存記事をnoteに投稿 週2回①）
     - cron: '0 23 * * 1'
     # 水曜 朝9時 JST（既存記事をXに週1本投稿）
     - cron: '0 0 * * 3'
     # 木曜 朝7時 JST（SEO監視 → 低順位記事を自動改善）
     - cron: '0 22 * * 3'
+    # 木曜 朝9時 JST（既存記事をnoteに投稿 週2回②）
+    - cron: '0 0 * * 4'
     # 土曜 朝9時 JST（クオリティ基準記事を自動生成・公開）
     - cron: '0 0 * * 6'
 
@@ -165,7 +167,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'note' ||
-      github.event_name == 'schedule' && github.event.schedule == '0 23 * * 1'
+      github.event_name == 'schedule' && (github.event.schedule == '0 23 * * 1' || github.event.schedule == '0 0 * * 4')
     permissions:
       contents: write
 
