@@ -275,6 +275,13 @@ async function main() {
 }
 
 main().catch(err => {
+  // OAuthトークン切れはワークフロー失敗扱いにしない（再取得が必要なだけ）
+  if (err.message?.includes('invalid_grant') || err.message?.includes('Token has been expired')) {
+    console.warn('⚠️ Google OAuthトークンが期限切れです。')
+    console.warn('   GitHub Secrets の GOOGLE_OAUTH_REFRESH_TOKEN を再設定してください。')
+    console.warn('   手順: node scripts/refresh-google-token.mjs を実行して新しいトークンを取得')
+    process.exit(0) // ワークフローを失敗扱いにしない
+  }
   console.error('❌ エラー:', err.message)
   process.exit(1)
 })
