@@ -28,6 +28,8 @@ const ARTICLE_FILES = [
   { slug: 'unpaid-freelance-response',     file: '13_unpaid-freelance-response.md' },
   { slug: 'ordering-side-compliance',      file: '14_ordering-side-compliance.md' },
   { slug: 'freelance-law-vs-subcontract-law', file: '15_freelance-law-vs-subcontract-law.md' },
+  { slug: 'gyomu-itaku-keiyakusho-check',    file: '17_gyomu-itaku-keiyakusho-check.md' },
+  { slug: 'freelance-miharai-jiko',          file: '18_freelance-miharai-jiko.md' },
 ]
 
 const STATE_FILE = join(ROOT, 'scripts', '.note-queue-state.json')

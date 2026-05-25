@@ -2,7 +2,7 @@ import { getArticle, getAllSlugs } from '@/lib/articles'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Script from 'next/script'
+import { MermaidLoader } from '@/components/MermaidLoader'
 
 type Props = { params: Promise<{ slug: string }> }
 
@@ -28,16 +28,7 @@ export default async function ArticlePage({ params }: Props) {
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
       {/* Mermaid ダイアグラム */}
-      <Script
-        src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"
-        strategy="afterInteractive"
-        onLoad={() => {
-          // @ts-ignore
-          window.mermaid?.initialize({ startOnLoad: true, theme: 'default', securityLevel: 'loose' })
-          // @ts-ignore
-          window.mermaid?.contentLoaded()
-        }}
-      />
+      <MermaidLoader />
 
       {/* カラーボックス用スタイル */}
       <style>{`
