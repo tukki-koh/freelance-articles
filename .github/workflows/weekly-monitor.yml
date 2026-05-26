@@ -1,4 +1,4 @@
-name: 週次自動運用（ニュース監視・記事公開・X投稿・SEO改善・note投稿）
+name: 週次自動運用（ニュース監視・記事公開・X投稿・SEO改善・note投稿・Qiita投稿）
 
 on:
   schedule:
@@ -14,6 +14,8 @@ on:
     - cron: '0 0 * * 4'
     # 土曜 朝9時 JST（クオリティ基準記事を自動生成・公開）
     - cron: '0 0 * * 6'
+    # 水曜 朝10時 JST（Qiita週1本投稿）
+    - cron: '0 1 * * 3'
 
   # 手動実行（テスト用）
   workflow_dispatch:
@@ -29,6 +31,7 @@ on:
           - seo            # SEO監視 → 低順位記事を自動改善
           - note           # 既存記事をnoteに投稿
           - quality-article # クオリティ基準記事を生成・公開
+          - qiita          # 既存記事をQiitaに投稿
 
 jobs:
   # ================================================================
@@ -236,4 +239,44 @@ jobs:
         if: always()
         run: |
           echo "## 土曜クオリティ記事生成 結果" >> $GITHUB_STEP_SUMMARY
+          echo "実行日時: $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')" >> $GITHUB_STEP_SUMMARY
+
+  # ================================================================
+  # JOB 6: 既存記事をQiitaに週1本ずつ投稿
+  # 毎週水曜 朝10時 JST（¥0 エンジニア層への無料集客）
+  # ================================================================
+  qiita-post:
+    name: Qiita定期投稿
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'qiita' ||
+      github.event_name == 'schedule' && github.event.schedule == '0 1 * * 3'
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: 既存記事をQiitaに投稿
+        env:
+          QIITA_TOKEN: ${{ secrets.QIITA_TOKEN }}
+        run: node scripts/qiita-post.mjs
+
+      - name: 投稿状態を保存
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: Qiita投稿状態を更新'
+          file_pattern: 'scripts/.qiita-state.json'
+
+      - name: 実行結果
+        if: always()
+        run: |
+          echo "## 水曜Qiita投稿 結果" >> $GITHUB_STEP_SUMMARY
           echo "実行日時: $(TZ=Asia/Tokyo date '+%Y-%m-%d %H:%M JST')" >> $GITHUB_STEP_SUMMARY
