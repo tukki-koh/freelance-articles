@@ -22,6 +22,8 @@ jobs:
   send-sales-emails:
     name: 営業メール下書き生成
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -33,10 +35,16 @@ jobs:
 
       - run: npm ci
 
-      - name: 営業メールをGmail下書きに保存
+      - name: 営業メールをMarkdownファイルに生成
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: node scripts/generate-sales-emails.mjs --type ${{ github.event.inputs.type || 'both' }}
+
+      - name: 生成したメールをリポジトリに保存
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: 営業メール下書きを生成'
+          file_pattern: 'sales/drafts/*.md'
 
       - name: 実行結果
         if: always()
@@ -46,4 +54,4 @@ jobs:
           echo "実行日時: $(TZ=Asia/Tokyo date '+%Y年%m月%d日 %H:%M JST')" >> $GITHUB_STEP_SUMMARY
           echo "タイプ: ${{ github.event.inputs.type || 'both（自動）' }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Gmailの下書きを確認して送信してください 👉 https://mail.google.com/#drafts" >> $GITHUB_STEP_SUMMARY
+          echo "📂 リポジトリの sales/drafts/ フォルダを確認してください" >> $GITHUB_STEP_SUMMARY
