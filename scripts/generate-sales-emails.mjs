@@ -10,42 +10,23 @@
  * 動作:
  *   1. sales/targets-b2b.csv または targets-b2c.csv を読み込む
  *   2. Claude AIで各ターゲット向けに個別メールを生成
- *   3. Gmailの下書きに自動保存
- *   4. あなたがGmailで確認して送信ボタンを押すだけ
+ *   3. sales/drafts/ フォルダにMarkdownファイルとして保存
+ *   4. GitHubにコミット → リポジトリで内容を確認してGmailからコピペ送信
  */
 
-import { google } from 'googleapis'
 import Anthropic from '@anthropic-ai/sdk'
-import { readFileSync, existsSync } from 'fs'
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
+const DRAFTS_DIR = join(ROOT, 'sales', 'drafts')
 
-// ── 環境変数 ─────────────────────────────────────────────────
-const GMAIL_CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID
-const GMAIL_CLIENT_SECRET = process.env.GOOGLE_OAUTH_CLIENT_SECRET
-// GMAIL_REFRESH_TOKEN がなければ GOOGLE_OAUTH_REFRESH_TOKEN（Search Console共用）にフォールバック
-const GMAIL_REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN || process.env.GOOGLE_OAUTH_REFRESH_TOKEN
-const GMAIL_FROM = process.env.GMAIL_FROM_EMAIL || 'yuezuangcheng@gmail.com'
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
-
-if (!GMAIL_REFRESH_TOKEN) {
-  console.warn('⚠️ GMAIL_REFRESH_TOKEN / GOOGLE_OAUTH_REFRESH_TOKEN が未設定です')
-  console.warn('   GitHub Secrets に GOOGLE_OAUTH_REFRESH_TOKEN を設定してください')
-  process.exit(0)
-}
 if (!ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY が未設定です')
 
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY })
-
-// ── Gmail クライアント ────────────────────────────────────────
-function createGmailClient() {
-  const auth = new google.auth.OAuth2(GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET)
-  auth.setCredentials({ refresh_token: GMAIL_REFRESH_TOKEN })
-  return google.gmail({ version: 'v1', auth })
-}
 
 // ── CSVパーサー ───────────────────────────────────────────────
 function parseCSV(filePath) {
@@ -67,7 +48,7 @@ async function generateB2BEmail(target) {
 
 ターゲット情報:
 - 会社名: ${target.company_name}
-- 部署: ${target.department || ''}
+- 部署: ${target.department || '採用・コーポレート'}
 - 業種: ${target.industry || ''}
 - メモ: ${target.note || ''}
 
@@ -75,7 +56,7 @@ async function generateB2BEmail(target) {
 
 件名: フリーランス新法、御社の業務委託契約は大丈夫ですか？
 
-[担当者名] 様
+[部署名]ご担当者様
 
 突然のご連絡、失礼いたします。
 
@@ -90,22 +71,17 @@ FreelanceContractAI
 月足昂誠
 
 ## 指示
-- 上記テンプレートをベースに、業種・部署・メモ情報を活かして自然に個別化してください
-- [担当者名] は実際の宛名に置き換えてください（department情報を使用）
-- 会社名を冒頭の宛名に組み込んでください
+- 上記テンプレートをベースに、業種・メモ情報を活かして1〜2箇所だけ個別化してください
 - 200字以内に収めてください（件名除く）
-- 一斉送信に見えないよう、1〜2箇所だけ個別情報を織り交ぜてください
+- 一斉送信に見えないよう自然な文体にしてください
 
-## 出力形式（JSONのみ、余計なテキスト不要）
-{
-  "subject": "件名",
-  "body": "本文（署名含む）"
-}
+## 出力形式（JSONのみ）
+{"subject":"件名","body":"本文（署名含む）"}
 `.trim()
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5',
-    max_tokens: 800,
+    model: 'claude-haiku-4-5',
+    max_tokens: 600,
     messages: [{ role: 'user', content: prompt }],
   })
 
@@ -117,44 +93,25 @@ FreelanceContractAI
 // ── B2C メール生成 ────────────────────────────────────────────
 async function generateB2CEmail(target) {
   const prompt = `
-フリーランス契約書AIチェックSaaS「FreelanceContractAI」の営業メールを1通作成してください。
+フリーランス契約書AIチェックSaaS「FreelanceContractAI」の個人向け案内メールを1通作成してください。
 
 ターゲット情報:
-- 名前: ${target.name}
-- 職種: ${target.occupation || 'フリーランス'}
-- メモ: ${target.note || ''}
-
-## 採用するメールテンプレート（ベース）
-
-件名: その業務委託契約、サインする前に30秒だけ確認してください
-
-[名前] さん
-
-「報酬の支払い条件が曖昧」「一方的な修正依頼が来た」——フリーランスの方からそんな声を多く聞きます。
-
-2024年11月施行のフリーランス新法により、発注側には書面交付・条件提示が義務づけられました。あなたが受け取った契約書が、その義務を果たしているか、500円・30秒でチェックできます。
-
-泣き寝入りする前に、まず契約書を診断してください。
-→ https://freelance-contract-checker.vercel.app
-
-FreelanceContractAI
-月足昂誠
+- 名前: ${target.name || 'フリーランスの方'}
+- 職種: ${target.occupation || ''}
+- 経験年数: ${target.years_experience || ''}年
+- メモ: ${target.notes || ''}
 
 ## 指示
-- 職種情報を使って1〜2箇所自然に個別化してください
-- 名前を宛名に使用してください（さん付け）
-- 150字以内に収めてください（件名除く）
-- 親しみやすいトーンで
+- フリーランス新法（2024年11月施行）の違反リスクを契約前に無料でチェックできることを伝える
+- 親しみやすい文体（です・ます調）
+- 150字以内（件名除く）
 
 ## 出力形式（JSONのみ）
-{
-  "subject": "件名",
-  "body": "本文（署名含む）"
-}
+{"subject":"件名","body":"本文（署名含む）"}
 `.trim()
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5',
+    model: 'claude-haiku-4-5',
     max_tokens: 600,
     messages: [{ role: 'user', content: prompt }],
   })
@@ -164,90 +121,115 @@ FreelanceContractAI
   return JSON.parse(json)
 }
 
-// ── Gmail 下書き作成 ──────────────────────────────────────────
-async function createGmailDraft(gmail, to, subject, body) {
-  const emailLines = [
-    `From: ${GMAIL_FROM}`,
-    `To: ${to}`,
-    `Subject: =?UTF-8?B?${Buffer.from(subject).toString('base64')}?=`,
-    'MIME-Version: 1.0',
-    'Content-Type: text/plain; charset=UTF-8',
-    'Content-Transfer-Encoding: base64',
+// ── Markdownファイルに保存 ────────────────────────────────────
+function saveDrafts(emails, type) {
+  mkdirSync(DRAFTS_DIR, { recursive: true })
+
+  const date = new Date().toISOString().slice(0, 10)
+  const filePath = join(DRAFTS_DIR, `${date}-${type}.md`)
+
+  const lines = [
+    `# 営業メール下書き（${type.toUpperCase()}）`,
+    `生成日時: ${new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}`,
+    `件数: ${emails.length}件`,
     '',
-    Buffer.from(body).toString('base64'),
+    '---',
+    '',
   ]
-  const raw = Buffer.from(emailLines.join('\r\n')).toString('base64url')
 
-  const response = await gmail.users.drafts.create({
-    userId: 'me',
-    requestBody: { message: { raw } },
-  })
+  for (const { to, subject, body } of emails) {
+    lines.push(`## 📧 宛先: ${to}`)
+    lines.push('')
+    lines.push(`**件名:** ${subject}`)
+    lines.push('')
+    lines.push('**本文:**')
+    lines.push('')
+    lines.push('```')
+    lines.push(body)
+    lines.push('```')
+    lines.push('')
+    lines.push('---')
+    lines.push('')
+  }
 
-  return response.data.id
+  writeFileSync(filePath, lines.join('\n'), 'utf-8')
+  return filePath
 }
 
 // ── メイン ────────────────────────────────────────────────────
 async function main() {
   const args = process.argv.slice(2)
   const typeArg = args.find(a => a.startsWith('--type='))?.split('=')[1]
-    || (args[args.indexOf('--type') + 1])
+    || args[args.indexOf('--type') + 1]
     || 'both'
 
-  const gmail = createGmailClient()
+  console.log(`📧 営業メール自動生成開始 (type: ${typeArg})\n`)
 
-  let b2bCount = 0
-  let b2cCount = 0
-
-  // ── B2B ────────────────────────────────────────────────────
+  // ── B2B ──────────────────────────────────────────────────────
   if (typeArg === 'b2b' || typeArg === 'both') {
     const b2bFile = join(ROOT, 'sales', 'targets-b2b.csv')
     if (!existsSync(b2bFile)) {
       console.log('⚠️  sales/targets-b2b.csv が見つかりません')
     } else {
       const targets = parseCSV(b2bFile)
-      console.log(`\n📧 B2B メール生成中... (${targets.length}件)`)
+      console.log(`📋 B2B: ${targets.length}社のメールを生成中...`)
+      const emails = []
 
       for (const target of targets) {
         try {
-          console.log(`  → ${target.company_name}`)
+          process.stdout.write(`  → ${target.company_name} ... `)
           const email = await generateB2BEmail(target)
-          const draftId = await createGmailDraft(gmail, target.contact_email, email.subject, email.body)
-          console.log(`  ✅ 下書き保存完了 (draft: ${draftId})`)
-          b2bCount++
+          emails.push({ to: target.contact_email, ...email })
+          console.log('✅')
         } catch (err) {
-          console.error(`  ❌ ${target.company_name}: ${err.message}`)
+          console.log(`❌ (${err.message})`)
         }
       }
+
+      const savedPath = saveDrafts(emails, 'b2b')
+      console.log(`\n💾 保存完了: ${savedPath.replace(ROOT + '/', '')}`)
+      console.log(`   ${emails.length}件のメールが保存されました`)
     }
   }
 
-  // ── B2C ────────────────────────────────────────────────────
+  // ── B2C ──────────────────────────────────────────────────────
   if (typeArg === 'b2c' || typeArg === 'both') {
     const b2cFile = join(ROOT, 'sales', 'targets-b2c.csv')
     if (!existsSync(b2cFile)) {
       console.log('⚠️  sales/targets-b2c.csv が見つかりません')
     } else {
       const targets = parseCSV(b2cFile)
-      console.log(`\n📧 B2C メール生成中... (${targets.length}件)`)
+      console.log(`\n📋 B2C: ${targets.length}件のメールを生成中...`)
+      const emails = []
 
       for (const target of targets) {
         try {
-          console.log(`  → ${target.name}`)
+          process.stdout.write(`  → ${target.name} ... `)
           const email = await generateB2CEmail(target)
-          const draftId = await createGmailDraft(gmail, target.email, email.subject, email.body)
-          console.log(`  ✅ 下書き保存完了 (draft: ${draftId})`)
-          b2cCount++
+          emails.push({ to: target.email, ...email })
+          console.log('✅')
         } catch (err) {
-          console.error(`  ❌ ${target.name}: ${err.message}`)
+          console.log(`❌ (${err.message})`)
         }
       }
+
+      const savedPath = saveDrafts(emails, 'b2c')
+      console.log(`\n💾 保存完了: ${savedPath.replace(ROOT + '/', '')}`)
+      console.log(`   ${emails.length}件のメールが保存されました`)
     }
   }
 
-  console.log(`\n🎉 完了！`)
-  console.log(`   B2B: ${b2bCount}件 / B2C: ${b2cCount}件 → Gmail下書きに保存されました`)
-  console.log(`   Gmailを開いて確認・送信してください`)
-  console.log(`   → https://mail.google.com/#drafts`)
+  console.log('\n🎉 完了！GitHubリポジトリの sales/drafts/ フォルダを確認してください')
+
+  // GitHub Actions サマリー
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    const { appendFileSync } = await import('fs')
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+      `## 📧 営業メール生成完了\n\n` +
+      `- リポジトリの \`sales/drafts/\` フォルダにMarkdownで保存されました\n` +
+      `- 内容を確認してGmailからコピペ送信してください\n`
+    )
+  }
 }
 
 main().catch(err => {
