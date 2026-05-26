@@ -26,11 +26,16 @@ const ROOT = join(__dirname, '..')
 // ── 環境変数 ─────────────────────────────────────────────────
 const GMAIL_CLIENT_ID = process.env.GOOGLE_OAUTH_CLIENT_ID
 const GMAIL_CLIENT_SECRET = process.env.GOOGLE_OAUTH_CLIENT_SECRET
-const GMAIL_REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN
+// GMAIL_REFRESH_TOKEN がなければ GOOGLE_OAUTH_REFRESH_TOKEN（Search Console共用）にフォールバック
+const GMAIL_REFRESH_TOKEN = process.env.GMAIL_REFRESH_TOKEN || process.env.GOOGLE_OAUTH_REFRESH_TOKEN
 const GMAIL_FROM = process.env.GMAIL_FROM_EMAIL || 'yuezuangcheng@gmail.com'
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY
 
-if (!GMAIL_REFRESH_TOKEN) throw new Error('GMAIL_REFRESH_TOKEN が未設定です')
+if (!GMAIL_REFRESH_TOKEN) {
+  console.warn('⚠️ GMAIL_REFRESH_TOKEN / GOOGLE_OAUTH_REFRESH_TOKEN が未設定です')
+  console.warn('   GitHub Secrets に GOOGLE_OAUTH_REFRESH_TOKEN を設定してください')
+  process.exit(0)
+}
 if (!ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY が未設定です')
 
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_API_KEY })

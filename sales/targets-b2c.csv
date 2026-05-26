@@ -1,3 +1,4 @@
-name,email,occupation,note
-山田太郎,sample@gmail.com,Webエンジニア,Lancersで活動中
-佐藤花子,sample2@gmail.com,グラフィックデザイナー,個人事業主
+name,email,occupation,years_experience,notes
+佐藤さん,sample1@example.com,Webデザイナー,3,副業フリーランス
+中村さん,sample2@example.com,エンジニア,5,フリーランス歴5年
+小林さん,sample3@example.com,ライター・編集,2,業務委託中心
