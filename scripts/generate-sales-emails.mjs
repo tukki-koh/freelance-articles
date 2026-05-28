@@ -171,8 +171,15 @@ async function main() {
     if (!existsSync(b2bFile)) {
       console.log('⚠️  sales/targets-b2b.csv が見つかりません')
     } else {
-      const targets = parseCSV(b2bFile)
+      const allTargets = parseCSV(b2bFile)
+      const targets = allTargets.filter(t => (t.status || 'active') !== 'bounced' && (t.status || 'active') !== 'skip')
+      const bounced = allTargets.filter(t => t.status === 'bounced')
+      const skipped = allTargets.filter(t => t.status === 'skip')
+
       console.log(`📋 B2B: ${targets.length}社のメールを生成中...`)
+      if (bounced.length > 0) console.log(`⏭️  バウンス済みスキップ: ${bounced.length}社`)
+      if (skipped.length > 0) console.log(`⏭️  手動スキップ: ${skipped.length}社`)
+
       const emails = []
 
       for (const target of targets) {
@@ -189,6 +196,18 @@ async function main() {
       const savedPath = saveDrafts(emails, 'b2b')
       console.log(`\n💾 保存完了: ${savedPath.replace(ROOT + '/', '')}`)
       console.log(`   ${emails.length}件のメールが保存されました`)
+
+      // バウンス会社のコンタクトフォームを表示
+      if (bounced.length > 0) {
+        console.log(`\n📬 バウンス済み企業のコンタクトフォーム（手動で送信してください）:`)
+        for (const t of bounced) {
+          if (t.contact_form_url) {
+            console.log(`   ${t.company_name}: ${t.contact_form_url}`)
+          } else {
+            console.log(`   ${t.company_name}: コンタクトフォームURLを調べて手動送信してください`)
+          }
+        }
+      }
     }
   }
 
