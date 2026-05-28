@@ -129,6 +129,7 @@ jobs:
   seo-improve:
     name: SEO監視・低順位記事自動改善
     runs-on: ubuntu-latest
+    continue-on-error: true  # Google OAuth失効時もワークフロー全体を失敗にしない
     if: |
       github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'seo' ||
       github.event_name == 'schedule' && github.event.schedule == '0 22 * * 3'
