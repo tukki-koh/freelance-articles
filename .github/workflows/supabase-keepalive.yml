@@ -1,9 +1,9 @@
-name: Supabase 停止防止（3日ごと）
+name: Supabase 停止防止（2日ごと）
 
 on:
   schedule:
-    # 3日ごと 朝9時 JST（= UTC 00:00）
-    - cron: '0 0 */3 * *'
+    # 2日ごと 朝9時 JST（= UTC 00:00）※7日停止ルールに対して十分な余裕
+    - cron: '0 0 */2 * *'
   workflow_dispatch:
 
 jobs:
@@ -18,9 +18,9 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: |
           if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
-            echo "⚠️ NEXT_PUBLIC_SUPABASE_URL または NEXT_PUBLIC_SUPABASE_ANON_KEY が未設定です"
-            echo "GitHub Secrets に追加してください"
-            exit 0
+            echo "❌ NEXT_PUBLIC_SUPABASE_URL または NEXT_PUBLIC_SUPABASE_ANON_KEY が未設定です"
+            echo "GitHub Secrets に追加してください → Settings > Secrets > Actions"
+            exit 1
           fi
 
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
@@ -30,10 +30,12 @@ jobs:
             --max-time 15 || echo "000")
           echo "Supabase レスポンス: $STATUS"
           if [ "$STATUS" -ge 200 ] && [ "$STATUS" -lt 500 ]; then
-            echo "✅ Supabase は正常に動作しています"
+            echo "✅ Supabase は正常に動作しています（停止防止済み）"
           else
-            echo "⚠️ Supabase への接続に失敗しました (HTTP $STATUS) - プロジェクトが停止している可能性があります"
-            echo "https://supabase.com/dashboard でプロジェクトを確認してください"
+            echo "❌ Supabase への接続に失敗しました (HTTP $STATUS)"
+            echo "プロジェクトが停止している可能性があります"
+            echo "https://supabase.com/dashboard で確認・復元してください"
+            exit 1
           fi
 
       - name: 結果をサマリーに表示
