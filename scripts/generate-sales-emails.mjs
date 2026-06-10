@@ -44,7 +44,7 @@ function parseCSV(filePath) {
 // ── B2B メール生成 ────────────────────────────────────────────
 async function generateB2BEmail(target) {
   const prompt = `
-フリーランス契約書AIチェックSaaS「FreelanceContractAI」の営業メールを1通作成してください。
+フリーランス契約書AIチェックSaaS「ワークシールド」の営業メールを1通作成してください。
 
 ターゲット情報:
 - 会社名: ${target.company_name}
@@ -62,12 +62,12 @@ async function generateB2BEmail(target) {
 
 2024年11月施行のフリーランス新法により、業務委託契約に新たな規制が課されました。違反した場合、行政指導・社名公表・罰則の対象となります。
 
-弊社の「FreelanceContractAI」では、御社の既存契約書をアップロードするだけで、30秒・500円〜で法的リスク箇所を自動特定。コンプライアンスリスクを事前に排除できます。
+弊社の「ワークシールド」では、御社の既存契約書をアップロードするだけで、30秒・500円〜で法的リスク箇所を自動特定。コンプライアンスリスクを事前に排除できます。
 
 まずは無料デモをご覧ください。
 → https://freelance-contract-checker.vercel.app
 
-FreelanceContractAI
+ワークシールド
 月足昂誠
 
 ## 指示
@@ -93,7 +93,7 @@ FreelanceContractAI
 // ── B2C メール生成 ────────────────────────────────────────────
 async function generateB2CEmail(target) {
   const prompt = `
-フリーランス契約書AIチェックSaaS「FreelanceContractAI」の個人向け案内メールを1通作成してください。
+フリーランス契約書AIチェックSaaS「ワークシールド」の個人向け案内メールを1通作成してください。
 
 ターゲット情報:
 - 名前: ${target.name || 'フリーランスの方'}

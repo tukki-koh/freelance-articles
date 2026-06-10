@@ -1,0 +1,120 @@
+{
+  "cookies": [
+    {
+      "name": "_GRECAPTCHA",
+      "value": "09AKhCRwiNB4xamgMj_6N8QnbsKaS7rL9lC4nqYzYfxN3eAcNCtXE09-xDrSaSqwpCJClAgb7Zyre-r1wKZrz6UgM",
+      "domain": "www.google.com",
+      "path": "/recaptcha",
+      "expires": 1794294900.722252,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "fp",
+      "value": "9a7df981e2e1c936c3fac35bdd06b3cbe",
+      "domain": ".note.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_vid_v1",
+      "value": "8515dc3cd0c74e7548928795ffd302d3",
+      "domain": "note.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_vid_v2",
+      "value": "8515dc3cd0c74e7548928795ffd302d3",
+      "domain": ".note.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_gid",
+      "value": "GA1.2.942152153.1778742849",
+      "domain": ".note.com",
+      "path": "/",
+      "expires": 1778829301,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_note_session_v5",
+      "value": "2dfabe8bdf35d7e112243cad8af4bbbf",
+      "domain": ".note.com",
+      "path": "/",
+      "expires": 1786691711.956242,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_J9CPC3WE56",
+      "value": "GS2.1.s1778742848$o1$g1$t1778742901$j7$l0$h0",
+      "domain": ".note.com",
+      "path": "/",
+      "expires": 1813302901.748189,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga",
+      "value": "GA1.1.676122376.1778742849",
+      "domain": ".note.com",
+      "path": "/",
+      "expires": 1813302901.748335,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://note.com",
+      "localStorage": [
+        {
+          "name": "confirmAnniversaryBadge",
+          "value": "2026/05/14"
+        },
+        {
+          "name": "_grecaptcha",
+          "value": "09AKhCRwjUU6WAtj3I7oM2XNpzBAsckf6QHGDYk633G7Ah3B6y6LNyM6w9j4QR6x6b0m0iGQ_AYV6zy4B6J1eOghd5E46DqEulBZXXAAU_ieRZWVWX7GhbXveYimj3thmX"
+        },
+        {
+          "name": "note-client-code",
+          "value": "b11203b54bb8653e1028e27910558a6fc0436666998f6407c7a7d58fe106de03"
+        },
+        {
+          "name": "showingCategory",
+          "value": "1,2,3,4,5,6,7"
+        }
+      ]
+    },
+    {
+      "origin": "https://www.google.com",
+      "localStorage": [
+        {
+          "name": "rc::a",
+          "value": "Ym1zOGl5MWw1YWRtYw=="
+        },
+        {
+          "name": "rc::f",
+          "value": "0aAPQrAoasTlhNyRpggp3o52LFEAN8uqCoq64VjZvwLBJMG21ER59ff4syBCe7LZBjl3yZZb0"
+        }
+      ]
+    }
+  ]
+}
