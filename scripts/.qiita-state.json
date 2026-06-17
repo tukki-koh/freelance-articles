@@ -1,5 +1,5 @@
 {
-  "nextIndex": 3,
+  "nextIndex": 4,
   "postedSlugs": [
     {
       "slug": "60day-rule-violation",
@@ -15,6 +15,11 @@
       "slug": "price-undercutting",
       "url": "https://qiita.com/keiyakusho-ai/items/7e499cec08efc1a54ceb",
       "postedAt": "2026-06-10T12:46:15.496Z"
+    },
+    {
+      "slug": "late-payment-response",
+      "url": "https://qiita.com/keiyakusho-ai/items/0602f2a4bda67e01be68",
+      "postedAt": "2026-06-17T14:26:24.054Z"
     }
   ]
 }
