@@ -1,5 +1,5 @@
 {
-  "nextIndex": 4,
+  "nextIndex": 5,
   "postedSlugs": [
     {
       "slug": "60day-rule-violation",
@@ -20,6 +20,11 @@
       "slug": "late-payment-response",
       "url": "https://qiita.com/keiyakusho-ai/items/0602f2a4bda67e01be68",
       "postedAt": "2026-06-17T14:26:24.054Z"
+    },
+    {
+      "slug": "subcontract-law-applicability",
+      "url": "https://qiita.com/keiyakusho-ai/items/87ca57b89f6606aacbd4",
+      "postedAt": "2026-06-24T05:04:24.177Z"
     }
   ]
 }
