@@ -1,5 +1,5 @@
 {
-  "nextIndex": 5,
+  "nextIndex": 6,
   "postedSlugs": [
     {
       "slug": "60day-rule-violation",
@@ -25,6 +25,11 @@
       "slug": "subcontract-law-applicability",
       "url": "https://qiita.com/keiyakusho-ai/items/87ca57b89f6606aacbd4",
       "postedAt": "2026-06-24T05:04:24.177Z"
+    },
+    {
+      "slug": "instant-termination-illegal",
+      "url": "https://qiita.com/keiyakusho-ai/items/c6f4f1d333d16278e188",
+      "postedAt": "2026-07-01T05:24:37.894Z"
     }
   ]
 }
