@@ -28,15 +28,25 @@ const SITE_URL = 'https://freelance-articles.vercel.app/'
 const SAAS_URL = 'https://freelance-contract-checker.vercel.app'
 
 // ================================================================
-// Search Console OAuth設定
+// Search Console 認証：サービスアカウント（無期限）優先／OAuthフォールバック
 // ================================================================
 function createSearchConsoleClient() {
-  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID
-  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET
-  const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN
-
-  const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, 'urn:ietf:wg:oauth:2.0:oob')
-  oauth2Client.setCredentials({ refresh_token: refreshToken })
+  const b64 = process.env.GOOGLE_SERVICE_ACCOUNT_B64
+  if (b64) {
+    const sa = JSON.parse(Buffer.from(b64, 'base64').toString('utf8'))
+    const jwt = new google.auth.JWT({
+      email: sa.client_email,
+      key: sa.private_key,
+      scopes: ['https://www.googleapis.com/auth/webmasters.readonly'],
+    })
+    return google.searchconsole({ version: 'v1', auth: jwt })
+  }
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_OAUTH_CLIENT_ID,
+    process.env.GOOGLE_OAUTH_CLIENT_SECRET,
+    'urn:ietf:wg:oauth:2.0:oob'
+  )
+  oauth2Client.setCredentials({ refresh_token: process.env.GOOGLE_OAUTH_REFRESH_TOKEN })
   return google.searchconsole({ version: 'v1', auth: oauth2Client })
 }
 

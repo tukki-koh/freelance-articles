@@ -26,6 +26,27 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 
 const SITE_URL = 'https://freelance-articles.vercel.app/'
+
+// Google認証：サービスアカウント（無期限・失効なし）を優先。無ければOAuthにフォールバック
+function getGoogleAuth() {
+  const b64 = process.env.GOOGLE_SERVICE_ACCOUNT_B64
+  if (b64) {
+    const sa = JSON.parse(Buffer.from(b64, 'base64').toString('utf8'))
+    return new google.auth.JWT({
+      email: sa.client_email,
+      key: sa.private_key,
+      scopes: ['https://www.googleapis.com/auth/webmasters.readonly'],
+    })
+  }
+  const { GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, GOOGLE_OAUTH_REFRESH_TOKEN } = process.env
+  if (!GOOGLE_OAUTH_CLIENT_ID || !GOOGLE_OAUTH_CLIENT_SECRET || !GOOGLE_OAUTH_REFRESH_TOKEN) {
+    throw new Error('GOOGLE_SERVICE_ACCOUNT_B64 または GOOGLE_OAUTH_* が設定されていません')
+  }
+  const oauth2Client = new google.auth.OAuth2(GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, 'urn:ietf:wg:oauth:2.0:oob')
+  oauth2Client.setCredentials({ refresh_token: GOOGLE_OAUTH_REFRESH_TOKEN })
+  return oauth2Client
+}
+
 const POSITION_THRESHOLD = 20   // 平均順位がこれ以下なら改善対象
 const CTR_THRESHOLD = 0.01      // CTRがこれ未満なら改善対象（1%）
 const DAYS = 28                 // 分析期間（日）
@@ -48,18 +69,7 @@ const ARTICLE_FILES = [
 // Step 1: Search Console APIで検索パフォーマンスを取得
 // ================================================================
 async function getSearchPerformance() {
-  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID
-  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET
-  const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN
-
-  if (!clientId || !clientSecret || !refreshToken) {
-    throw new Error('GOOGLE_OAUTH_CLIENT_ID / CLIENT_SECRET / REFRESH_TOKEN が設定されていません')
-  }
-
-  const oauth2Client = new google.auth.OAuth2(clientId, clientSecret, 'urn:ietf:wg:oauth:2.0:oob')
-  oauth2Client.setCredentials({ refresh_token: refreshToken })
-  const auth = oauth2Client
-
+  const auth = getGoogleAuth()
   const searchConsole = google.searchconsole({ version: 'v1', auth })
 
   const endDate = new Date().toISOString().slice(0, 10)
