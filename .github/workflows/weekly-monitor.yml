@@ -193,6 +193,8 @@ jobs:
         run: echo '${{ secrets.NOTE_SESSION_JSON }}' > scripts/.note-session.json
 
       - name: 既存記事をnoteに投稿
+        env:
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
         run: node scripts/note-scheduled.mjs
 
       - name: 投稿状態を保存

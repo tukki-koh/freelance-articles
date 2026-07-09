@@ -9,9 +9,11 @@
  */
 
 import { chromium } from 'playwright'
-import { writeFileSync, mkdirSync, existsSync, readFileSync } from 'fs'
+import { writeFileSync, mkdirSync, existsSync, readFileSync, createWriteStream } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import https from 'https'
+import os from 'os'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const SCREENSHOT_DIR = join(__dirname, '..', 'debug-screenshots')
@@ -50,6 +52,66 @@ async function typeIntoContentEditable(page, selector, text) {
   }, selector)
 
   return value.length > 0
+}
+
+// Unsplashから画像URLを取得
+async function fetchUnsplashImage(query) {
+  const UNSPLASH_KEY = process.env.UNSPLASH_ACCESS_KEY
+  if (!UNSPLASH_KEY) return null
+  try {
+    const url = `https://api.unsplash.com/photos/random?query=${encodeURIComponent(query)}&orientation=landscape&client_id=${UNSPLASH_KEY}`
+    const data = await new Promise((resolve, reject) => {
+      https.get(url, res => {
+        let body = ''
+        res.on('data', d => body += d)
+        res.on('end', () => resolve(JSON.parse(body)))
+        res.on('error', reject)
+      })
+    })
+    return data.urls?.regular ?? null
+  } catch {
+    return null
+  }
+}
+
+// 画像URLをローカルに一時保存
+async function downloadImage(imageUrl) {
+  const tmpPath = join(os.tmpdir(), `note-img-${Date.now()}.jpg`)
+  await new Promise((resolve, reject) => {
+    const file = createWriteStream(tmpPath)
+    https.get(imageUrl, res => {
+      if (res.statusCode === 301 || res.statusCode === 302) {
+        https.get(res.headers.location, res2 => {
+          res2.pipe(file)
+          file.on('finish', () => file.close(resolve))
+        }).on('error', reject)
+      } else {
+        res.pipe(file)
+        file.on('finish', () => file.close(resolve))
+      }
+    }).on('error', reject)
+  })
+  return tmpPath
+}
+
+// note.comに画像をアップロードして本文に挿入
+async function uploadImageToNote(page, imagePath) {
+  try {
+    const fileInput = await page.locator('input[type="file"]').first()
+    // noteのツールバーから画像ボタンをクリック
+    const imgBtn = page.locator('button[aria-label*="画像"], button[title*="画像"], .toolbar button:has(svg)').first()
+    if (await imgBtn.count() > 0) {
+      await imgBtn.click()
+      await page.waitForTimeout(500)
+    }
+    const input = page.locator('input[type="file"][accept*="image"]').first()
+    if (await input.count() > 0) {
+      await input.setInputFiles(imagePath)
+      await page.waitForTimeout(3000)
+      return true
+    }
+  } catch {}
+  return false
 }
 
 export async function postToNote(title, markdownBody) {
@@ -99,7 +161,18 @@ export async function postToNote(title, markdownBody) {
     }
     console.log('✅ ログイン済み確認')
 
-    // ── ② 新規記事ページへ ────────────────────────────────────
+    // ── ② Unsplash画像取得 ───────────────────────────────────
+    console.log('🖼️ Unsplash画像取得中...')
+    const keywords = title.replace(/[【】「」]/g, ' ').split(/\s+/).slice(0, 3).join(' ')
+    const headerImageUrl = await fetchUnsplashImage(keywords)
+    const bodyImageUrl = await fetchUnsplashImage(keywords + ' business')
+    let headerImagePath = null
+    let bodyImagePath = null
+    if (headerImageUrl) headerImagePath = await downloadImage(headerImageUrl)
+    if (bodyImageUrl) bodyImagePath = await downloadImage(bodyImageUrl)
+    console.log(headerImagePath ? '✅ 見出し画像取得成功' : '⚠️ 見出し画像取得失敗')
+
+    // ── ③ 新規記事ページへ ────────────────────────────────────
     console.log('✍️ 新規記事ページへ移動...')
     await page.goto('https://note.com/notes/new', { waitUntil: 'networkidle', timeout: 30000 })
     await page.waitForTimeout(3000)
@@ -213,7 +286,64 @@ export async function postToNote(title, markdownBody) {
 
     await saveScreenshot(page, '06-body-entered')
 
-    // ── ⑤ 公開 ───────────────────────────────────────────────
+    // ── ⑤ 見出し画像設定 ─────────────────────────────────────
+    if (headerImagePath) {
+      console.log('🖼️ 見出し画像をアップロード中...')
+      try {
+        // note.comの見出し画像ボタン
+        const coverBtn = page.locator('button:has-text("見出し画像"), label:has-text("見出し画像"), [class*="cover"], [class*="eyecatch"]').first()
+        if (await coverBtn.count() > 0) {
+          await coverBtn.click()
+          await page.waitForTimeout(1000)
+          const fileInput = page.locator('input[type="file"]').first()
+          if (await fileInput.count() > 0) {
+            await fileInput.setInputFiles(headerImagePath)
+            await page.waitForTimeout(3000)
+            console.log('✅ 見出し画像アップロード完了')
+          }
+        }
+      } catch (e) {
+        console.log('⚠️ 見出し画像アップロード失敗:', e.message)
+      }
+      await saveScreenshot(page, '06b-header-image')
+    }
+
+    // ── ⑥ 本文中に画像挿入 ──────────────────────────────────
+    if (bodyImagePath) {
+      console.log('🖼️ 本文中に画像を挿入中...')
+      try {
+        // 本文エリアの中央にカーソルを移動して画像挿入
+        const editor = page.locator('.ProseMirror, [data-placeholder="本文を書く"]').first()
+        if (await editor.count() > 0) {
+          await editor.click()
+          // 本文の中頃に移動（Ctrl+End後に少し戻る）
+          await page.keyboard.press('Control+End')
+          await page.waitForTimeout(300)
+          await page.keyboard.press('Enter')
+          // 画像アップロードボタンを探してクリック
+          const imgUploadBtn = page.locator('button[aria-label*="画像"], input[type="file"][accept*="image"]').first()
+          if (await imgUploadBtn.count() > 0) {
+            if ((await imgUploadBtn.evaluate(e => e.tagName)) === 'INPUT') {
+              await imgUploadBtn.setInputFiles(bodyImagePath)
+            } else {
+              await imgUploadBtn.click()
+              await page.waitForTimeout(500)
+              const fileInput = page.locator('input[type="file"]').first()
+              if (await fileInput.count() > 0) {
+                await fileInput.setInputFiles(bodyImagePath)
+              }
+            }
+            await page.waitForTimeout(3000)
+            console.log('✅ 本文中画像挿入完了')
+          }
+        }
+      } catch (e) {
+        console.log('⚠️ 本文画像挿入失敗:', e.message)
+      }
+      await saveScreenshot(page, '06c-body-image')
+    }
+
+    // ── ⑦ 公開 ───────────────────────────────────────────────
     console.log('🚀 公開中...')
     await page.waitForTimeout(1000)
 
