@@ -1,5 +1,5 @@
 {
-  "nextIndex": 7,
+  "nextIndex": 8,
   "postedSlugs": [
     {
       "slug": "60day-rule-violation",
@@ -35,6 +35,11 @@
       "slug": "return-prohibition",
       "url": "https://qiita.com/keiyakusho-ai/items/1538e5cc9daae769ec02",
       "postedAt": "2026-07-08T04:16:36.080Z"
+    },
+    {
+      "slug": "sme-freelance-ordering-caution",
+      "url": "https://qiita.com/keiyakusho-ai/items/7881c685982d09e432f4",
+      "postedAt": "2026-07-15T04:07:23.839Z"
     }
   ]
 }
