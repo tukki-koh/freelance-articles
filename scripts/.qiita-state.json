@@ -1,5 +1,5 @@
 {
-  "nextIndex": 9,
+  "nextIndex": 10,
   "postedSlugs": [
     {
       "slug": "60day-rule-violation",
@@ -45,6 +45,11 @@
       "slug": "revision-cost-liability",
       "url": "https://qiita.com/keiyakusho-ai/items/63e7c848bbabe312080e",
       "postedAt": "2026-07-22T04:19:24.746Z"
+    },
+    {
+      "slug": "harassment-prevention",
+      "url": "https://qiita.com/keiyakusho-ai/items/c6f188564c6e7323a29a",
+      "postedAt": "2026-07-29T04:14:06.642Z"
     }
   ]
 }
