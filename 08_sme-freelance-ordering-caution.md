@@ -101,3 +101,11 @@
 ---
 
 *参照：フリーランス新法 第3条・第4条・第5条・第14条・第16条*
+
+---
+
+## 関連記事
+
+- [フリーランス新法 契約書チェックリスト10項目【2024年11月施行・条文番号付き】署名前に必ず確認](https://freelance-articles.vercel.app/articles/contract-checklist)
+- [フリーランスへの発注で「知らなかった」では済まない違反10パターン【発注担当者向け完全ガイド】](https://freelance-articles.vercel.app/articles/ordering-side-compliance)
+- [業務委託契約書の危険な条項チェックリスト｜サインする前に必ず確認すべき7つのポイント](https://freelance-articles.vercel.app/articles/dangerous-contract-clauses)
