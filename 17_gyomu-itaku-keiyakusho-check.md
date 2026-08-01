@@ -200,3 +200,11 @@
 > **👉 契約書のリスクをAIでチェック → https://freelance-contract-checker.vercel.app**
 >
 > フリーランス新法・下請法の全条項に照らして30秒で自動診断。違反条項を条文番号付きで指摘し、修正案まで提示します。無料登録で1回お試し可能。
+
+---
+
+## 関連記事
+
+- [業務委託契約書の危険な条項チェックリスト｜サインする前に必ず確認すべき7つのポイント](https://freelance-articles.vercel.app/articles/dangerous-contract-clauses)
+- [フリーランス新法 契約書チェックリスト10項目【2024年11月施行・条文番号付き】署名前に必ず確認](https://freelance-articles.vercel.app/articles/contract-checklist)
+- [中小企業がフリーランスに発注する際の注意点｜フリーランス新法で変わった義務を解説](https://freelance-articles.vercel.app/articles/sme-freelance-ordering-caution)
