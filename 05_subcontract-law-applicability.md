@@ -86,3 +86,11 @@ AIによる契約書チェックを活用すれば、フリーランス新法・
 ---
 
 *参照：下請代金支払遅延等防止法 第2条・第3条・第4条、フリーランス新法 第3〜5条*
+
+---
+
+## 関連記事
+
+- [フリーランス新法 契約書チェックリスト10項目【2024年11月施行・条文番号付き】署名前に必ず確認](https://freelance-articles.vercel.app/articles/contract-checklist)
+- [中小企業がフリーランスに発注する際の注意点｜フリーランス新法で変わった義務を解説](https://freelance-articles.vercel.app/articles/sme-freelance-ordering-caution)
+- [フリーランスの報酬未払い・支払い遅延への対処法【泣き寝入りしないための完全ガイド】](https://freelance-articles.vercel.app/articles/unpaid-freelance-response)
