@@ -148,3 +148,10 @@ A. フリーランス新法違反の申告先は、**厚生労働省または公
 **契約書のリスクをAIでチェック → https://freelance-contract-checker.vercel.app** では、フリーランス新法第4条を含む全条項をAIが自動分析し、「支払期日の記載が60日を超えている」「支払期日の定めがない」といったリスクを**条文番号付きで指摘**します。
 
 契約書のPDF・画像・テキストをアップロードするだけで、専門家に
+---
+
+## 関連記事
+
+- [フリーランス報酬の支払い遅延｜法的根拠と段階別の対処法【2024年最新】](https://freelance-articles.vercel.app/articles/late-payment-response)
+- [フリーランス新法と下請法の違いを5分で理解する【どちらが自分に適用されるか完全解説】](https://freelance-articles.vercel.app/articles/freelance-law-vs-subcontract-law)
+- [フリーランス新法 契約書チェックリスト10項目【2024年11月施行・条文番号付き】署名前に必ず確認](https://freelance-articles.vercel.app/articles/contract-checklist)
