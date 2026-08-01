@@ -83,3 +83,11 @@
 ---
 
 *参照：フリーランス新法第4条、下請法第2条の2・第4条の2、民法第419条*
+
+---
+
+## 関連記事
+
+- [フリーランス新法「60日ルール」とは？支払い遅延の罰則・遅延利息・対処法を条文付きで完全解説【2025年最新版】](https://freelance-articles.vercel.app/articles/60day-rule-violation)
+- [フリーランス新法 契約書チェックリスト10項目【2024年11月施行・条文番号付き】署名前に必ず確認](https://freelance-articles.vercel.app/articles/contract-checklist)
+- [中小企業がフリーランスに発注する際の注意点｜フリーランス新法で変わった義務を解説](https://freelance-articles.vercel.app/articles/sme-freelance-ordering-caution)
