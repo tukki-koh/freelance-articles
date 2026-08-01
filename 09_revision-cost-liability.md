@@ -113,3 +113,11 @@ Webサイトのデザインを納品したら「イメージが違う」「も�
 ---
 
 *参照：フリーランス新法 第5条第7号（不当な給付内容の変更等の禁止）、民法第632条（請負）*
+
+---
+
+## 関連記事
+
+- [フリーランス新法 契約書チェックリスト10項目【2024年11月施行・条文番号付き】署名前に必ず確認](https://freelance-articles.vercel.app/articles/contract-checklist)
+- [業務委託の「買いたたき」はフリーランス新法違反｜対策と証拠の残し方](https://freelance-articles.vercel.app/articles/price-undercutting)
+- [業務委託契約の「即時解除条項」はフリーランス新法違反？30日前予告ルールを解説](https://freelance-articles.vercel.app/articles/instant-termination-illegal)
