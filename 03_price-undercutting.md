@@ -83,3 +83,11 @@
 ---
 
 *参照：フリーランス新法 第5条第2号・第4号、下請法 第4条第1項第4号*
+
+---
+
+## 関連記事
+
+- [フリーランス新法 契約書チェックリスト10項目【2024年11月施行・条文番号付き】署名前に必ず確認](https://freelance-articles.vercel.app/articles/contract-checklist)
+- [中小企業がフリーランスに発注する際の注意点｜フリーランス新法で変わった義務を解説](https://freelance-articles.vercel.app/articles/sme-freelance-ordering-caution)
+- [フリーランス新法、あなたの契約は対象？5分でわかる適用チェックリスト【2025年最新版】](https://freelance-articles.vercel.app/articles/freelance-law-applicable-check)
