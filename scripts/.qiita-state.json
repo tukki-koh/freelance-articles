@@ -1,5 +1,5 @@
 {
-  "nextIndex": 10,
+  "nextIndex": 11,
   "postedSlugs": [
     {
       "slug": "60day-rule-violation",
@@ -50,6 +50,11 @@
       "slug": "harassment-prevention",
       "url": "https://qiita.com/keiyakusho-ai/items/c6f188564c6e7323a29a",
       "postedAt": "2026-07-29T04:14:06.642Z"
+    },
+    {
+      "slug": "freelance-law-applicable-check",
+      "url": "https://qiita.com/keiyakusho-ai/items/f0746af91e2d6e9ff405",
+      "postedAt": "2026-08-05T04:13:01.188Z"
     }
   ]
 }
