@@ -1,5 +1,5 @@
 {
-  "nextIndex": 11,
+  "nextIndex": 12,
   "postedSlugs": [
     {
       "slug": "60day-rule-violation",
@@ -55,6 +55,11 @@
       "slug": "freelance-law-applicable-check",
       "url": "https://qiita.com/keiyakusho-ai/items/f0746af91e2d6e9ff405",
       "postedAt": "2026-08-05T04:13:01.188Z"
+    },
+    {
+      "slug": "dangerous-contract-clauses",
+      "url": "https://qiita.com/keiyakusho-ai/items/c5c4c2a776bf08c6c5b1",
+      "postedAt": "2026-08-12T03:23:56.775Z"
     }
   ]
 }
