@@ -1,5 +1,5 @@
 {
-  "nextIndex": 13,
+  "nextIndex": 14,
   "postedSlugs": [
     {
       "slug": "60day-rule-violation",
@@ -65,6 +65,11 @@
       "slug": "unpaid-freelance-response",
       "url": "https://qiita.com/keiyakusho-ai/items/f97d89e3633e94bd7dcd",
       "postedAt": "2026-08-19T02:19:01.970Z"
+    },
+    {
+      "slug": "ordering-side-compliance",
+      "url": "https://qiita.com/keiyakusho-ai/items/71a7e23fea823e18a830",
+      "postedAt": "2026-08-26T02:25:33.757Z"
     }
   ]
 }
