@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 /**
- * note.com 自動投稿スクリプト（Playwright改良版）
+ * note.com 自動投稿スクリプト（editor.note.com 新UI対応版・2026-08更新）
  *
- * 改善点:
- * - contenteditable要素にはpage.evaluate()でdispatchEventを使用
- * - 各ステップでスクリーンショットを保存（デバッグ用）
- * - ネットワークアイドル待機で確実にページ読み込みを待つ
+ * note.comのエディタが新UI（editor.note.com）に刷新されたことに伴い、
+ * セレクタを全面的に更新。実際のDOMを調査した上で以下を確定：
+ * - タイトル欄:   textarea[placeholder="記事タイトル"]
+ * - 本文欄:       .ProseMirror
+ * - 見出し画像:   タイトル上の button[data-id="ButtonIcon"] → 「画像をアップロード」
+ * - 本文中画像:   行頭の aria-label="メニューを開く" ボタン → 「画像」
+ * - 公開ボタン:   button:has-text("公開に進む") → ダイアログ内 button:has-text("投稿する")
  */
 
 import { chromium } from 'playwright'
@@ -21,37 +24,6 @@ const SESSION_FILE = join(__dirname, '.note-session.json')
 
 function saveScreenshot(page, name) {
   return page.screenshot({ path: join(SCREENSHOT_DIR, `${name}.png`) }).catch(() => {})
-}
-
-// contenteditable要素に確実にテキストを入力
-async function typeIntoContentEditable(page, selector, text) {
-  const el = page.locator(selector).first()
-  await el.waitFor({ timeout: 10000 })
-  await el.click()
-  await page.waitForTimeout(500)
-
-  // まずクリアしてから入力
-  await page.evaluate((sel) => {
-    const el = document.querySelector(sel)
-    if (el) {
-      el.focus()
-      // 全選択してクリア
-      document.execCommand('selectAll', false, null)
-      document.execCommand('delete', false, null)
-    }
-  }, selector)
-
-  // keyboard.typeはcontenteditable対応
-  await page.keyboard.type(text, { delay: 20 })
-  await page.waitForTimeout(300)
-
-  // 入力確認
-  const value = await page.evaluate((sel) => {
-    const el = document.querySelector(sel)
-    return el?.textContent ?? el?.innerText ?? ''
-  }, selector)
-
-  return value.length > 0
 }
 
 // Unsplashから画像URLを取得
@@ -94,26 +66,6 @@ async function downloadImage(imageUrl) {
   return tmpPath
 }
 
-// note.comに画像をアップロードして本文に挿入
-async function uploadImageToNote(page, imagePath) {
-  try {
-    const fileInput = await page.locator('input[type="file"]').first()
-    // noteのツールバーから画像ボタンをクリック
-    const imgBtn = page.locator('button[aria-label*="画像"], button[title*="画像"], .toolbar button:has(svg)').first()
-    if (await imgBtn.count() > 0) {
-      await imgBtn.click()
-      await page.waitForTimeout(500)
-    }
-    const input = page.locator('input[type="file"][accept*="image"]').first()
-    if (await input.count() > 0) {
-      await input.setInputFiles(imagePath)
-      await page.waitForTimeout(3000)
-      return true
-    }
-  } catch {}
-  return false
-}
-
 export async function postToNote(title, markdownBody) {
   if (!existsSync(SESSION_FILE)) {
     throw new Error('セッションファイルが見つかりません。node scripts/note-setup-session.mjs を実行してください。')
@@ -144,7 +96,7 @@ export async function postToNote(title, markdownBody) {
   })
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    viewport: { width: 1280, height: 800 },
+    viewport: { width: 1280, height: 900 },
     locale: 'ja-JP',
     storageState: sessionState,
   })
@@ -172,111 +124,59 @@ export async function postToNote(title, markdownBody) {
     if (bodyImageUrl) bodyImagePath = await downloadImage(bodyImageUrl)
     console.log(headerImagePath ? '✅ 見出し画像取得成功' : '⚠️ 見出し画像取得失敗')
 
-    // ── ③ 新規記事ページへ ────────────────────────────────────
+    // ── ③ 新規記事ページへ（editor.note.com にリダイレクトされる）──
     console.log('✍️ 新規記事ページへ移動...')
     await page.goto('https://note.com/notes/new', { waitUntil: 'networkidle', timeout: 30000 })
     await page.waitForTimeout(3000)
     await saveScreenshot(page, '04-new-article-page')
 
-    // ── ③ タイトル入力 ────────────────────────────────────────
+    // ── ④ タイトル入力 ────────────────────────────────────────
     console.log('📝 タイトル入力...')
-
-    // タイトル要素を探す（優先順位順）
-    const titleSelectors = [
-      'textarea[placeholder="タイトル"]',
-      'input[placeholder="タイトル"]',
-      '[data-placeholder="タイトル"]',
-      'h1[contenteditable]',
-      '[placeholder*="タイトル"]',
-      'div[contenteditable="true"]:first-of-type',
-    ]
-
     let titleDone = false
-    for (const sel of titleSelectors) {
-      try {
-        const count = await page.locator(sel).count()
-        if (count === 0) continue
-
-        const el = page.locator(sel).first()
-        const tagName = await el.evaluate(e => e.tagName.toLowerCase())
-
-        if (tagName === 'textarea' || tagName === 'input') {
-          await el.fill(title)
-        } else {
-          // contenteditable
-          await el.click()
-          await page.waitForTimeout(300)
-          await page.evaluate((sel, t) => {
-            const el = document.querySelector(sel)
-            if (!el) return
-            el.focus()
-            document.execCommand('selectAll', false, null)
-            document.execCommand('insertText', false, t)
-          }, sel, title)
-        }
-
-        const val = await el.evaluate(e => e.value ?? e.textContent ?? e.innerText)
-        if (val?.trim()) {
-          console.log(`✅ タイトル入力成功: ${sel}`)
-          titleDone = true
-          break
-        }
-      } catch (e) {
-        // 次のセレクターへ
+    try {
+      const titleEl = page.locator('textarea[placeholder="記事タイトル"]').first()
+      await titleEl.waitFor({ timeout: 10000 })
+      await titleEl.click()
+      await page.keyboard.type(title, { delay: 15 })
+      const val = await titleEl.inputValue().catch(() => '')
+      if (val?.trim()) {
+        console.log('✅ タイトル入力成功')
+        titleDone = true
       }
+    } catch (e) {
+      console.log('⚠️ タイトル欄が見つからず:', e.message)
     }
 
     if (!titleDone) {
-      // 最終手段: Tabキーで移動しながら入力
       await page.keyboard.press('Tab')
       await page.keyboard.type(title, { delay: 30 })
       console.log('⚠️ タイトル: フォールバック入力を試みました')
     }
 
     await saveScreenshot(page, '05-title-entered')
-    await page.keyboard.press('Tab')
-    await page.waitForTimeout(500)
 
-    // ── ④ 本文入力 ────────────────────────────────────────────
+    // ── ⑤ 本文入力 ────────────────────────────────────────────
     console.log('📄 本文入力...')
-    const bodySelectors = [
-      '.ProseMirror',
-      '[data-placeholder="本文を書く"]',
-      '[placeholder="本文を書く"]',
-      'div.editor',
-      'div[contenteditable="true"]:last-of-type',
-      'div[contenteditable="true"]:nth-of-type(2)',
-    ]
-
     let bodyDone = false
-    for (const sel of bodySelectors) {
-      try {
-        const count = await page.locator(sel).count()
-        if (count === 0) continue
+    try {
+      const bodyEl = page.locator('.ProseMirror').first()
+      await bodyEl.waitFor({ timeout: 10000 })
+      await bodyEl.click()
+      await page.waitForTimeout(300)
 
-        const el = page.locator(sel).first()
-        await el.click()
-        await page.waitForTimeout(300)
+      // 本文は長いのでchunkに分けて入力（型入力でエディタのイベントを正しく発火させる）
+      const chunks = body.match(/.{1,800}/gs) ?? [body]
+      for (const chunk of chunks) {
+        await page.keyboard.type(chunk, { delay: 1 })
+      }
 
-        // 本文は長いのでchunkに分けて入力
-        const chunks = body.match(/.{1,500}/gs) ?? [body]
-        for (const chunk of chunks) {
-          await page.evaluate((sel, text) => {
-            const el = document.querySelector(sel)
-            if (!el) return
-            el.focus()
-            document.execCommand('insertText', false, text)
-          }, sel, chunk)
-          await page.waitForTimeout(100)
-        }
-
-        const val = await el.evaluate(e => e.textContent ?? e.innerText ?? '')
-        if (val?.trim().length > 10) {
-          console.log(`✅ 本文入力成功: ${sel}`)
-          bodyDone = true
-          break
-        }
-      } catch {}
+      const val = await bodyEl.evaluate(e => e.textContent ?? e.innerText ?? '')
+      if (val?.trim().length > 10) {
+        console.log('✅ 本文入力成功')
+        bodyDone = true
+      }
+    } catch (e) {
+      console.log('⚠️ 本文入力エラー:', e.message)
     }
 
     if (!bodyDone) {
@@ -286,21 +186,36 @@ export async function postToNote(title, markdownBody) {
 
     await saveScreenshot(page, '06-body-entered')
 
-    // ── ⑤ 見出し画像設定 ─────────────────────────────────────
+    // ── ⑥ 見出し画像設定 ─────────────────────────────────────
+    // タイトル欄の直上にある画像追加ボタン（data-id="ButtonIcon"）→「画像をアップロード」
     if (headerImagePath) {
       console.log('🖼️ 見出し画像をアップロード中...')
       try {
-        // note.comの見出し画像ボタン
-        const coverBtn = page.locator('button:has-text("見出し画像"), label:has-text("見出し画像"), [class*="cover"], [class*="eyecatch"]').first()
+        const coverBtn = page.locator('button[data-id="ButtonIcon"]').first()
         if (await coverBtn.count() > 0) {
           await coverBtn.click()
-          await page.waitForTimeout(1000)
+          await page.waitForTimeout(800)
+          const uploadOption = page.locator('button:has-text("画像をアップロード")').first()
+          if (await uploadOption.count() > 0) {
+            await uploadOption.click()
+            await page.waitForTimeout(500)
+          }
           const fileInput = page.locator('input[type="file"]').first()
           if (await fileInput.count() > 0) {
             await fileInput.setInputFiles(headerImagePath)
-            await page.waitForTimeout(3000)
+            await page.waitForTimeout(2500)
+            // 見出し画像アップロード後に出るクロップ（切り抜き）確認モーダルを保存で閉じる
+            const cropSaveBtn = page.locator('button:has-text("保存")').first()
+            if (await cropSaveBtn.count() > 0 && await cropSaveBtn.isVisible()) {
+              await cropSaveBtn.click({ force: true })
+              await page.waitForTimeout(1500)
+            }
             console.log('✅ 見出し画像アップロード完了')
+          } else {
+            console.log('⚠️ 見出し画像: file inputが見つからず')
           }
+        } else {
+          console.log('⚠️ 見出し画像ボタンが見つからず')
         }
       } catch (e) {
         console.log('⚠️ 見出し画像アップロード失敗:', e.message)
@@ -308,34 +223,45 @@ export async function postToNote(title, markdownBody) {
       await saveScreenshot(page, '06b-header-image')
     }
 
-    // ── ⑥ 本文中に画像挿入 ──────────────────────────────────
+    // ── ⑦ 本文中に画像挿入 ──────────────────────────────────
+    // 本文末尾の行頭にある aria-label="メニューを開く" ボタン →「画像」
     if (bodyImagePath) {
       console.log('🖼️ 本文中に画像を挿入中...')
       try {
-        // 本文エリアの中央にカーソルを移動して画像挿入
-        const editor = page.locator('.ProseMirror, [data-placeholder="本文を書く"]').first()
-        if (await editor.count() > 0) {
-          await editor.click()
-          // 本文の中頃に移動（Ctrl+End後に少し戻る）
-          await page.keyboard.press('Control+End')
-          await page.waitForTimeout(300)
-          await page.keyboard.press('Enter')
-          // 画像アップロードボタンを探してクリック
-          const imgUploadBtn = page.locator('button[aria-label*="画像"], input[type="file"][accept*="image"]').first()
-          if (await imgUploadBtn.count() > 0) {
-            if ((await imgUploadBtn.evaluate(e => e.tagName)) === 'INPUT') {
-              await imgUploadBtn.setInputFiles(bodyImagePath)
-            } else {
-              await imgUploadBtn.click()
-              await page.waitForTimeout(500)
-              const fileInput = page.locator('input[type="file"]').first()
-              if (await fileInput.count() > 0) {
-                await fileInput.setInputFiles(bodyImagePath)
+        const editor = page.locator('.ProseMirror').first()
+        await editor.click()
+        await page.keyboard.press('Control+End')
+        await page.waitForTimeout(300)
+        await page.keyboard.press('Enter')
+        await page.waitForTimeout(500)
+
+        const menuBtn = page.locator('button[aria-label="メニューを開く"]').first()
+        if (await menuBtn.count() > 0) {
+          await menuBtn.click()
+          await page.waitForTimeout(600)
+          const imgOption = page.locator('button:has-text("画像")').first()
+          if (await imgOption.count() > 0 && await imgOption.isVisible()) {
+            await imgOption.click()
+            await page.waitForTimeout(500)
+            const fileInput = page.locator('input[type="file"]').first()
+            if (await fileInput.count() > 0) {
+              await fileInput.setInputFiles(bodyImagePath)
+              await page.waitForTimeout(2500)
+              // 本文画像も同様にクロップ確認モーダルが出る場合がある
+              const cropSaveBtn = page.locator('button:has-text("保存")').first()
+              if (await cropSaveBtn.count() > 0 && await cropSaveBtn.isVisible()) {
+                await cropSaveBtn.click({ force: true })
+                await page.waitForTimeout(1500)
               }
+              console.log('✅ 本文中画像挿入完了')
+            } else {
+              console.log('⚠️ 本文画像: file inputが見つからず')
             }
-            await page.waitForTimeout(3000)
-            console.log('✅ 本文中画像挿入完了')
+          } else {
+            console.log('⚠️ 本文画像: 「画像」メニュー項目が見えない')
           }
+        } else {
+          console.log('⚠️ 本文画像: メニューを開くボタンが見つからず')
         }
       } catch (e) {
         console.log('⚠️ 本文画像挿入失敗:', e.message)
@@ -343,21 +269,23 @@ export async function postToNote(title, markdownBody) {
       await saveScreenshot(page, '06c-body-image')
     }
 
-    // ── ⑦ 公開 ───────────────────────────────────────────────
+    // ── ⑧ 公開 ───────────────────────────────────────────────
     console.log('🚀 公開中...')
     await page.waitForTimeout(1000)
 
-    const publishBtn = page.locator('button:has-text("公開"), button:has-text("投稿"), button:has-text("公開する")').first()
+    const publishBtn = page.locator('button:has-text("公開に進む")').first()
     await publishBtn.click({ timeout: 10000 })
     await page.waitForTimeout(2000)
     await saveScreenshot(page, '07-publish-dialog')
 
-    // 確認ダイアログが出た場合
-    const confirmBtn = page.locator('button:has-text("公開する"), button:has-text("投稿する"), button:has-text("OK")').first()
+    // 公開設定ダイアログ内の最終投稿ボタン
+    const confirmBtn = page.locator('button:has-text("投稿する")').first()
     const confirmCount = await confirmBtn.count()
     if (confirmCount > 0) {
       await confirmBtn.click()
       await page.waitForTimeout(3000)
+    } else {
+      console.log('⚠️ 「投稿する」ボタンが見つからず、公開できていない可能性')
     }
 
     await saveScreenshot(page, '08-published')
