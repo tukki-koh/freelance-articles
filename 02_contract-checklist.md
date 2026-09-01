@@ -180,3 +180,10 @@
 
 **安全な例文：**
 > 「成果物の返品は、乙の責に帰すべき瑕疵がある場合に限る。発注者都合による不使用の場合も報酬全額を支払う義務を負う。
+---
+
+## 関連記事
+
+- [中小企業がフリーランスに発注する際の注意点｜フリーランス新法で変わった義務を解説](https://freelance-articles.vercel.app/articles/sme-freelance-ordering-caution)
+- [フリーランスへの発注で「知らなかった」では済まない違反10パターン【発注担当者向け完全ガイド】](https://freelance-articles.vercel.app/articles/ordering-side-compliance)
+- [業務委託契約書の危険な条項チェックリスト｜サインする前に必ず確認すべき7つのポイント](https://freelance-articles.vercel.app/articles/dangerous-contract-clauses)
