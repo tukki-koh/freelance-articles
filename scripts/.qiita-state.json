@@ -1,5 +1,5 @@
 {
-  "nextIndex": 15,
+  "nextIndex": 16,
   "postedSlugs": [
     {
       "slug": "60day-rule-violation",
@@ -75,6 +75,11 @@
       "slug": "freelance-law-vs-subcontract-law",
       "url": "https://qiita.com/keiyakusho-ai/items/edbb5d8d96a06c032fbe",
       "postedAt": "2026-09-02T05:32:35.054Z"
+    },
+    {
+      "slug": "gyomu-itaku-keiyakusho-check",
+      "url": "https://qiita.com/keiyakusho-ai/items/d8b5a7c4136eeef32e69",
+      "postedAt": "2026-09-09T05:47:57.405Z"
     }
   ]
 }
