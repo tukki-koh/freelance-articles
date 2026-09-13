@@ -177,7 +177,7 @@ ${currentContent}
    - 「〜とは？」「〜の方法」など検索意図に合ったフレーズを増やす
 5. 文字数: 1400〜1800字（現在より増やす）
 6. CTAは変更不可:
-   > **👉 契約書のリスクをAIでチェック → https://freelance-contract-checker.vercel.app**
+   > **👉 登録不要・無料で契約書のリスクをAIチェック → https://freelance-contract-checker.vercel.app/try**
 
 改善した記事本文のみ出力。説明・前置き不要。`,
     }],

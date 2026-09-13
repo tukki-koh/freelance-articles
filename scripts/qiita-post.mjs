@@ -22,7 +22,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 const STATE_FILE = join(__dirname, '.qiita-state.json')
 const SITE_URL = 'https://freelance-articles.vercel.app'
-const CHECKER_URL = 'https://freelance-contract-checker.vercel.app'
+const CHECKER_URL = 'https://freelance-contract-checker.vercel.app/try'
 
 // ================================================================
 // 投稿対象記事リスト（全18本）
@@ -72,7 +72,7 @@ function formatForQiita(content, slug) {
   // CTAリンクをQiita向けに調整
   body = body.replace(
     /👉 契約書のリスクをAIでチェック → https:\/\/freelance-contract-checker\.vercel\.app/g,
-    `👉 **契約書のリスクをAIでチェック** → [freelance-contract-checker.vercel.app](${CHECKER_URL})\n\nフリーランス新法・下請法の全条項に照らして30秒で自動診断。違反条項を条文番号付きで指摘し、修正案まで提示。**無料登録で1回お試し可能**（クレジットカード不要）。`
+    `👉 **契約書のリスクをAIでチェック** → [freelance-contract-checker.vercel.app/try](${CHECKER_URL})\n\nフリーランス新法・下請法の全条項に照らして30秒で自動診断。違反条項を条文番号付きで指摘し、修正案まで提示。**登録不要で1回無料お試し可能**（クレジットカード不要）。`
   )
 
   // 記事サイトへの参照を追加

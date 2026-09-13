@@ -146,7 +146,7 @@ ${newsText}
 - 読者が「知らなかった！」と思える具体的な事例を含める
 - 不確かな情報は「要確認」と明記
 - 末尾のCTA（変更不可）：
-  > **👉 契約書のリスクをAIでチェック → https://freelance-contract-checker.vercel.app**
+  > **👉 登録不要・無料で契約書のリスクをAIチェック → https://freelance-contract-checker.vercel.app/try**
 
 記事本文のみ出力。前置き不要。`,
     }],
