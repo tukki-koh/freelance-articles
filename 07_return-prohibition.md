@@ -71,7 +71,7 @@
 
 あなたのクライアントの契約書は、今の法律に対応していますか？
 
-> **[→ 契約書を500円でAI診断する](https://freelance-contract-checker.vercel.app/pricing)**
+> **[→ 登録不要・無料で契約書を1回AI診断する（条文番号付きで違反箇所を特定）](https://freelance-contract-checker.vercel.app/try)**
 
 ---
 
@@ -205,7 +205,7 @@ WebデザイナーのAさんは、スタートアップ企業からロゴ制作�
 
 契約書が旧来のままの状態は、発注者にとっても重大なコンプライアンスリスクです。
 
-> **[→ 契約書を500円でAI診断する](https://freelance-contract-checker.vercel.app/pricing)**
+> **[→ 登録不要・無料で契約書を1回AI診断する（条文番号付きで違反箇所を特定）](https://freelance-contract-checker.vercel.app/try)**
 
 ---
 
@@ -284,7 +284,7 @@ WebデザイナーのAさんは、スタートアップ企業からロゴ制作�
 
 契約書の文言1つで、報酬を守れるかどうかが変わります。
 
-> **[→ 契約書を500円でAI診断する](https://freelance-contract-checker.vercel.app/pricing)**
+> **[→ 登録不要・無料で契約書を1回AI診断する（条文番号付きで違反箇所を特定）](https://freelance-contract-checker.vercel.app/try)**
 > フリーランス新法第5条の違反条項を自動検出し、法令準拠の修正案を提示します。
 
 ---

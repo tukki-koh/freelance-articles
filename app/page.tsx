@@ -59,7 +59,7 @@ export default function HomePage() {
 
       {/* CTA バナー */}
       <a
-        href="https://freelance-contract-checker.vercel.app"
+        href="https://freelance-contract-checker.vercel.app/try"
         target="_blank"
         rel="noopener noreferrer"
         className="block bg-blue-600 hover:bg-blue-700 transition-colors rounded-xl p-5 mb-10 shadow-lg"
@@ -68,7 +68,7 @@ export default function HomePage() {
           <div className="text-2xl">📋</div>
           <div className="flex-1">
             <p className="font-bold text-white mb-1">契約書を今すぐAIでチェック →</p>
-            <p className="text-blue-100 text-sm">フリーランス新法・下請法への違反リスクを条文番号付きで自動検出。<strong className="text-white">無料で1回お試し</strong>・500円から。</p>
+            <p className="text-blue-100 text-sm">フリーランス新法・下請法への違反リスクを条文番号付きで自動検出。<strong className="text-white">登録不要で1回無料お試し</strong>・単発300円から。</p>
           </div>
           <span className="shrink-0 bg-white text-blue-700 font-bold text-sm px-4 py-2 rounded-lg">
             無料で試す →

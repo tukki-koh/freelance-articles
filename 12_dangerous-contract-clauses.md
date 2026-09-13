@@ -34,7 +34,7 @@
 
 **3つ以上ある契約書は、フリーランス新法・下請法の複数条項に抵触しており、全面的な見直しが必要です。**
 
-> **[→ 契約書を500円でAI診断する（条文番号付きで違反箇所を特定）](https://freelance-contract-checker.vercel.app/pricing)**
+> **[→ 登録不要・無料で契約書を1回AI診断する（条文番号付きで違反箇所を特定）](https://freelance-contract-checker.vercel.app/try)**
 
 ---
 

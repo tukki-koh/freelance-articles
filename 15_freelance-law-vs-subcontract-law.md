@@ -54,7 +54,7 @@ Webデザイン・システム開発・ライティングなどは「情報成�
 
 **つまり、大企業から仕事をもらっているフリーランスには、両方の法律が同時に適用されます。**
 
-> **[→ 自分の契約書が両法に適合しているか500円で確認する](https://freelance-contract-checker.vercel.app/pricing)**
+> **[→ 登録不要・無料で契約書を1回AI診断する（条文番号付きで違反箇所を特定）](https://freelance-contract-checker.vercel.app/try)**
 
 ---
 

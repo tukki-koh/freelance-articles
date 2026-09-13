@@ -29,7 +29,7 @@
 
 つまり、あなたが今「おかしい」と感じていることの多くが、**フリーランス新法第5条・第16条等で明確に禁止された違法行為です。**
 
-> **[→ 今の契約書を500円で診断する（30秒・専門知識不要）](https://freelance-contract-checker.vercel.app/pricing)**
+> **[→ 登録不要・無料で契約書を1回AI診断する（条文番号付きで違反箇所を特定）](https://freelance-contract-checker.vercel.app/try)**
 
 ---
 

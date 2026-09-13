@@ -40,7 +40,7 @@
 
 **1つでも当てはまれば、あなたには法的な請求権があります。**「お願い」ではなく「権利の行使」として動けます。
 
-> **[→ 契約書を500円でAI診断して請求根拠を把握する](https://freelance-contract-checker.vercel.app/pricing)**
+> **[→ 登録不要・無料で契約書を1回AI診断する（条文番号付きで違反箇所を特定）](https://freelance-contract-checker.vercel.app/try)**
 
 ---
 

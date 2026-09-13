@@ -60,7 +60,7 @@ export default async function ArticlePage({ params }: Props) {
       </article>
 
       <a
-        href="https://freelance-contract-checker.vercel.app"
+        href="https://freelance-contract-checker.vercel.app/try"
         target="_blank"
         rel="noopener noreferrer"
         className="block mt-10 bg-blue-600 hover:bg-blue-700 transition-colors rounded-xl p-6 text-center"
@@ -70,7 +70,7 @@ export default async function ArticlePage({ params }: Props) {
           フリーランス新法・下請法の観点から契約書を分析。違反リスクを条文番号付きで指摘します。
         </p>
         <span className="inline-block bg-white text-blue-700 font-semibold px-6 py-2 rounded-full text-sm">
-          500円から始める
+          無料で1回診断する（登録不要）
         </span>
       </a>
 
