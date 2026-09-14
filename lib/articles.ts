@@ -9,7 +9,9 @@ const ROOT = path.join(process.cwd())
 
 function scanArticleFiles(): { slug: string; file: string }[] {
   const files = fs.readdirSync(ROOT)
-    .filter(f => /^\d+_[\w-]+\.md$/.test(f))
+    // 番号付きの通常記事と、generate-draft.mjs が作るニュース記事（news-*.md）の両方を公開する。
+    // ニュース記事を除外していたため、X投稿に載せた記事URLがすべて404になっていた。
+    .filter(f => /^\d+_[\w-]+\.md$/.test(f) || /^news-[\w-]+\.md$/.test(f))
     .sort()
 
   return files.map(file => {

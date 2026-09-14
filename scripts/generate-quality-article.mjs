@@ -236,20 +236,12 @@ async function generateArticle(theme) {
 // ================================================================
 // ファイル名のslugを生成
 // ================================================================
-function titleToSlug(title) {
-  const clusterMap = {
-    applicable: 'applicable',
-    contract: 'contract',
-    payment: 'payment',
-    ordering: 'ordering',
-    knowledge: 'knowledge',
-  }
-  return title
-    .replace(/[「」【】？！。、・]/g, '')
-    .replace(/\s+/g, '-')
-    .toLowerCase()
-    .slice(0, 50)
-    .replace(/-+$/, '')
+function titleToSlug(theme) {
+  // タイトルは日本語なので、そのままslugにすると記事一覧のファイル名条件（英数字）に合わず
+  // 公開されなかった。英数字だけ残し、足りなければ「クラスタ-日付」で一意なslugにする。
+  const ascii = theme.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+  const date = new Date().toISOString().slice(0, 10).replace(/-/g, '')
+  return ascii.length >= 8 ? ascii.slice(0, 50) : `${theme.cluster ?? 'article'}-${date}`
 }
 
 // ================================================================
@@ -295,7 +287,7 @@ async function main() {
 
   const articleContent = await generateArticle(theme)
 
-  const slug = titleToSlug(theme.title)
+  const slug = titleToSlug(theme)
   const filename = `${String(nextNumber).padStart(2, '0')}_${slug}.md`
 
   // ローカルにも保存（ローカル実行時）
