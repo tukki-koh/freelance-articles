@@ -105,7 +105,9 @@ export async function postToNote(title, markdownBody) {
   try {
     // ── ① セッション確認 ────────────────────────────────────────
     console.log('🔐 セッション確認中...')
-    await page.goto('https://note.com', { waitUntil: 'networkidle', timeout: 30000 })
+    // トップページはログアウト状態でも開けるため、ログイン必須の新規記事ページで確認する
+    // （以前は note.com を開いただけで「ログイン済み」と判定し、期限切れに気づけず編集画面でタイムアウトしていた）
+    await page.goto('https://note.com/notes/new', { waitUntil: 'networkidle', timeout: 30000 })
     await saveScreenshot(page, '01-session-check')
 
     if (page.url().includes('/login')) {
