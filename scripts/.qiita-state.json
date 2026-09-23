@@ -1,5 +1,5 @@
 {
-  "nextIndex": 0,
+  "nextIndex": 1,
   "postedSlugs": [
     {
       "slug": "60day-rule-violation",
@@ -85,6 +85,11 @@
       "slug": "freelance-miharai-jiko",
       "url": "https://qiita.com/keiyakusho-ai/items/49e889dc01cac8a4580c",
       "postedAt": "2026-09-16T05:45:38.992Z"
+    },
+    {
+      "slug": "60day-rule-violation",
+      "url": "https://qiita.com/keiyakusho-ai/items/debd9a038ac6a2722fd4",
+      "postedAt": "2026-09-23T05:38:40.467Z"
     }
   ]
 }
