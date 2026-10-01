@@ -141,3 +141,10 @@ flowchart TD
 法律の専門知識がなくても、AIが条文番号付きで違反箇所を特定し、今すぐ改善できます。
 
 > **[→ 登録不要・無料で契約書を1回AI診断する（条文番号付きで違反箇所を特定）](https://freelance-contract-checker.vercel.app/try)**
+---
+
+## 関連記事
+
+- [個人事業主とフリーランスの違い｜フリーランス新法の適用はどちらか](https://freelance-articles.vercel.app/articles/applicable-20260919)
+- [個人事業主とフリーランスの違い｜フリーランス新法の適用はどちらか](https://freelance-articles.vercel.app/articles/applicable-20260926)
+- [フリーランス新法 契約書チェックリスト10項目【2024年11月施行・条文番号付き】署名前に必ず確認](https://freelance-articles.vercel.app/articles/contract-checklist)
