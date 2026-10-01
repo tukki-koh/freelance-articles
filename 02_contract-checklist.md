@@ -175,3 +175,10 @@
 
 **❌ 危険な例文：**
 > 「甲が成果物を使用しないと判断した場合、甲は成果物を返品し報酬の支払いを免れる
+---
+
+## 関連記事
+
+- [中小企業がフリーランスに発注する際の注意点｜フリーランス新法で変わった義務を解説](https://freelance-articles.vercel.app/articles/sme-freelance-ordering-caution)
+- [フリーランスへの発注で「知らなかった」では済まない違反10パターン【発注担当者向け完全ガイド】](https://freelance-articles.vercel.app/articles/ordering-side-compliance)
+- [業務委託契約書の危険な条項チェックリスト｜サインする前に必ず確認すべき7つのポイント](https://freelance-articles.vercel.app/articles/dangerous-contract-clauses)
