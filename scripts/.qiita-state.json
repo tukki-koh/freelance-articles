@@ -1,5 +1,5 @@
 {
-  "nextIndex": 2,
+  "nextIndex": 3,
   "postedSlugs": [
     {
       "slug": "60day-rule-violation",
@@ -95,6 +95,11 @@
       "slug": "contract-checklist",
       "url": "https://qiita.com/keiyakusho-ai/items/e867289901d1659ad305",
       "postedAt": "2026-09-30T06:24:29.312Z"
+    },
+    {
+      "slug": "price-undercutting",
+      "url": "https://qiita.com/keiyakusho-ai/items/aac32599cbebaa6809e0",
+      "postedAt": "2026-10-07T06:59:17.849Z"
     }
   ]
 }
