@@ -293,7 +293,25 @@ export async function postToNote(title, markdownBody) {
     await saveScreenshot(page, '08-published')
 
     const finalUrl = page.url()
-    console.log(`✅ 投稿完了: ${finalUrl}`)
+
+    // note は最後の「投稿する」でボット検知のチャレンジを挟むため、自動公開は通らないことがある。
+    // 画面遷移だけでは判断できないので、公開APIで実際に公開されたかを確かめる。
+    const key = finalUrl.match(/notes\/([a-z0-9]+)/i)?.[1]
+    let published = false
+    if (key) {
+      for (let i = 0; i < 5 && !published; i++) {
+        await page.waitForTimeout(3000)
+        const res = await fetch(`https://note.com/api/v3/notes/${key}`).catch(() => null)
+        published = res?.status === 200
+      }
+    }
+
+    if (published) {
+      console.log(`✅ 公開完了: https://note.com/notes/${key}`)
+    } else {
+      console.log('⚠️ 下書きまで作成しましたが、公開は完了していません（note側の自動投稿チェックによるもの）。')
+      console.log(`👉 ここを開いて「投稿する」を押せば公開できます: ${finalUrl}`)
+    }
     return finalUrl
 
   } finally {
