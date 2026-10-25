@@ -4,6 +4,8 @@
 
 ---
 
+> **[→ 登録不要・無料で契約書を1回AI診断する（条文番号付きで違反箇所を特定）](https://freelance-contract-checker.vercel.app/try)**
+
 ## 「明日から来なくていい」は違法になりました
 
 「急な事業計画の変更で、来月から契約を打ち切りたい」「都合により即日解約とさせていただきます」——このような一方的な契約解除は、フリーランスにとって死活問題です。翌月の収入が突然ゼロになり、次の案件を探す時間もない。
@@ -87,3 +89,13 @@
 - [フリーランス新法 契約書チェックリスト10項目【2024年11月施行・条文番号付き】署名前に必ず確認](https://freelance-articles.vercel.app/articles/contract-checklist)
 - [中小企業がフリーランスに発注する際の注意点｜フリーランス新法で変わった義務を解説](https://freelance-articles.vercel.app/articles/sme-freelance-ordering-caution)
 - [業務委託契約書の危険な条項チェックリスト｜サインする前に必ず確認すべき7つのポイント](https://freelance-articles.vercel.app/articles/dangerous-contract-clauses)
+
+---
+
+## 契約書の不安は、1分で確かめられます
+
+この記事で挙げた条項が自分の契約書に入っていないか、**登録不要・無料**で確認できます。カード情報も要りません。
+
+**[→ 無料で契約書をAI診断する](https://freelance-contract-checker.vercel.app/try)**
+
+フリーランス新法・下請法の全条項に照らして、違反の疑いがある箇所を条文番号付きで指摘します。

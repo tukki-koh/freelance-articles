@@ -4,6 +4,8 @@
 
 ---
 
+> **[→ 登録不要・無料で契約書を1回AI診断する（条文番号付きで違反箇所を特定）](https://freelance-contract-checker.vercel.app/try)**
+
 ## 「単価を下げてほしい」は法律違反になりうる
 
 フリーランスの方から最もよく聞くトラブルの一つが「急に単価を下げてくれと言われた」「前回より30%低い見積もりを出したら、それでもまだ高いと言われた」というものです。
@@ -91,3 +93,13 @@
 - [フリーランス新法 契約書チェックリスト10項目【2024年11月施行・条文番号付き】署名前に必ず確認](https://freelance-articles.vercel.app/articles/contract-checklist)
 - [中小企業がフリーランスに発注する際の注意点｜フリーランス新法で変わった義務を解説](https://freelance-articles.vercel.app/articles/sme-freelance-ordering-caution)
 - [フリーランス新法、あなたの契約は対象？5分でわかる適用チェックリスト【2025年最新版】](https://freelance-articles.vercel.app/articles/freelance-law-applicable-check)
+
+---
+
+## 契約書の不安は、1分で確かめられます
+
+この記事で挙げた条項が自分の契約書に入っていないか、**登録不要・無料**で確認できます。カード情報も要りません。
+
+**[→ 無料で契約書をAI診断する](https://freelance-contract-checker.vercel.app/try)**
+
+フリーランス新法・下請法の全条項に照らして、違反の疑いがある箇所を条文番号付きで指摘します。

@@ -4,6 +4,8 @@
 
 ---
 
+> **[→ 登録不要・無料で契約書を1回AI診断する（条文番号付きで違反箇所を特定）](https://freelance-contract-checker.vercel.app/try)**
+
 ## 「今月も振り込みがない」はもう我慢しなくていい
 
 納品から2ヶ月が過ぎた。催促メールを送ったら「確認中」の返事だけ。翌月になっても入金なし——こうした状況は、精神的にも経済的にも深刻なダメージを与えます。しかし多くのフリーランスは「相手との関係を壊したくない」「どうすれば良いかわからない」と泣き寝入りしてしまいます。
@@ -91,3 +93,13 @@
 - [フリーランス新法「60日ルール」とは？支払い遅延の罰則・遅延利息・対処法を条文付きで完全解説【2025年最新版】](https://freelance-articles.vercel.app/articles/60day-rule-violation)
 - [フリーランス新法 契約書チェックリスト10項目【2024年11月施行・条文番号付き】署名前に必ず確認](https://freelance-articles.vercel.app/articles/contract-checklist)
 - [中小企業がフリーランスに発注する際の注意点｜フリーランス新法で変わった義務を解説](https://freelance-articles.vercel.app/articles/sme-freelance-ordering-caution)
+
+---
+
+## 契約書の不安は、1分で確かめられます
+
+この記事で挙げた条項が自分の契約書に入っていないか、**登録不要・無料**で確認できます。カード情報も要りません。
+
+**[→ 無料で契約書をAI診断する](https://freelance-contract-checker.vercel.app/try)**
+
+フリーランス新法・下請法の全条項に照らして、違反の疑いがある箇所を条文番号付きで指摘します。
