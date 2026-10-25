@@ -277,42 +277,48 @@ export async function postToNote(title, markdownBody) {
 
     const publishBtn = page.locator('button:has-text("公開に進む")').first()
     await publishBtn.click({ timeout: 10000 })
-    await page.waitForTimeout(2000)
+
+    // 公開設定画面は中身を非同期で読み込む。読み込み前に「投稿する」を押しても
+    // クリックが効かず下書きのまま終わるので、画面が落ち着くまで必ず待つ。
+    await page.waitForURL(/\/publish\/?$/, { timeout: 30000 }).catch(() => {})
+    await page.waitForLoadState('networkidle', { timeout: 30000 }).catch(() => {})
+    await page.waitForTimeout(3000)
     await saveScreenshot(page, '07-publish-dialog')
 
-    // 公開設定ダイアログ内の最終投稿ボタン
-    const confirmBtn = page.locator('button:has-text("投稿する")').first()
-    const confirmCount = await confirmBtn.count()
-    if (confirmCount > 0) {
+    const finalUrl = page.url()
+    const key = finalUrl.match(/notes\/([a-z0-9]+)/i)?.[1]
+
+    // 公開できたかは画面遷移では分からない（URLは公開後も変わらない）ので、
+    // 公開APIが200を返すかどうかで判定する。
+    const isPublished = async () => {
+      if (!key) return false
+      const res = await fetch(`https://note.com/api/v3/notes/${key}`).catch(() => null)
+      return res?.status === 200
+    }
+
+    let published = false
+    for (let attempt = 1; attempt <= 3 && !published; attempt++) {
+      const confirmBtn = page.getByRole('button', { name: '投稿する', exact: true }).first()
+      if (await confirmBtn.count() === 0) {
+        console.log('⚠️ 「投稿する」ボタンが見つかりません')
+        break
+      }
+      await confirmBtn.scrollIntoViewIfNeeded().catch(() => {})
       await confirmBtn.click()
-      await page.waitForTimeout(3000)
-    } else {
-      console.log('⚠️ 「投稿する」ボタンが見つからず、公開できていない可能性')
+      for (let i = 0; i < 6 && !published; i++) {
+        await page.waitForTimeout(2500)
+        published = await isPublished()
+      }
+      if (!published) console.log(`⚠️ 公開を確認できず、再試行します (${attempt}/3)`)
     }
 
     await saveScreenshot(page, '08-published')
 
-    const finalUrl = page.url()
-
-    // note は最後の「投稿する」でボット検知のチャレンジを挟むため、自動公開は通らないことがある。
-    // 画面遷移だけでは判断できないので、公開APIで実際に公開されたかを確かめる。
-    const key = finalUrl.match(/notes\/([a-z0-9]+)/i)?.[1]
-    let published = false
-    if (key) {
-      for (let i = 0; i < 5 && !published; i++) {
-        await page.waitForTimeout(3000)
-        const res = await fetch(`https://note.com/api/v3/notes/${key}`).catch(() => null)
-        published = res?.status === 200
-      }
-    }
-
     if (published) {
       console.log(`✅ 公開完了: https://note.com/notes/${key}`)
-    } else {
-      console.log('⚠️ 下書きまで作成しましたが、公開は完了していません（note側の自動投稿チェックによるもの）。')
-      console.log(`👉 ここを開いて「投稿する」を押せば公開できます: ${finalUrl}`)
+      return `https://note.com/notes/${key}`
     }
-    return finalUrl
+    throw new Error(`公開できませんでした。手動で公開してください: ${finalUrl}`)
 
   } finally {
     await browser.close()
