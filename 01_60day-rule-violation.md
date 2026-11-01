@@ -160,3 +160,10 @@
 - 納品日時が確認できるメール・チャット履歴
 - 請求書とその送付記録（既読・開封確認があれば尚良）
 - 成果物のデ
+---
+
+## 関連記事
+
+- [個人事業主とフリーランスの違い｜フリーランス新法の適用はどちらか](https://freelance-articles.vercel.app/articles/applicable-20260926)
+- [フリーランス報酬の支払い遅延｜法的根拠と段階別の対処法【2024年最新】](https://freelance-articles.vercel.app/articles/late-payment-response)
+- [フリーランス新法 契約書チェックリスト10項目【2024年11月施行・条文番号付き】署名前に必ず確認](https://freelance-articles.vercel.app/articles/contract-checklist)
