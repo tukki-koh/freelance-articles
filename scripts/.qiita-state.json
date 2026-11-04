@@ -1,5 +1,5 @@
 {
-  "nextIndex": 6,
+  "nextIndex": 7,
   "postedSlugs": [
     {
       "slug": "60day-rule-violation",
@@ -115,6 +115,11 @@
       "slug": "instant-termination-illegal",
       "url": "https://qiita.com/keiyakusho-ai/items/a3782de853fe3f441674",
       "postedAt": "2026-10-28T06:42:35.401Z"
+    },
+    {
+      "slug": "return-prohibition",
+      "url": "https://qiita.com/keiyakusho-ai/items/e35c814d0a87772c893a",
+      "postedAt": "2026-11-04T07:20:36.641Z"
     }
   ]
 }
