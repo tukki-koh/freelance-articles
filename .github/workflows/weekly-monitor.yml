@@ -12,8 +12,10 @@ on:
     - cron: '0 22 * * 3'
     # 木曜 朝9時 JST（既存記事をnoteに投稿 週2回②）
     - cron: '0 0 * * 4'
-    # 土曜 朝9時 JST（クオリティ基準記事を自動生成・公開）
-    - cron: '0 0 * * 6'
+    # 毎日 朝11時半 JST（クオリティ基準記事を自動生成・公開）
+    # 週1本では検索に載る記事が増えるのが遅すぎるため毎日にする。
+    # 他のcronと同時刻にすると片方しか発火しないので、時刻を重ねないこと。
+    - cron: '30 2 * * *'
     # 水曜 朝10時 JST（Qiita週1本投稿）
     - cron: '0 1 * * 3'
 
@@ -218,7 +220,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'quality-article' ||
-      github.event_name == 'schedule' && github.event.schedule == '0 0 * * 6'
+      github.event_name == 'schedule' && github.event.schedule == '30 2 * * *'
     permissions:
       contents: write
 
