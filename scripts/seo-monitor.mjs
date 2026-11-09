@@ -156,8 +156,9 @@ async function improveArticle(slug, file, reason) {
   console.log(`   理由: ${reason}`)
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    model: 'claude-sonnet-5',
+    max_tokens: 16000,
+    output_config: { effort: 'medium' },
     messages: [{
       role: 'user',
       content: `あなたはフリーランス新法・下請法の専門SEOライターです。
@@ -183,7 +184,7 @@ ${currentContent}
     }],
   })
 
-  return message.content[0].text
+  return message.content.filter(b => b.type === 'text').map(b => b.text).join('')
 }
 
 // ================================================================

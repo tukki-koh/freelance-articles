@@ -85,7 +85,7 @@ async function generateB2BEmail(target) {
     messages: [{ role: 'user', content: prompt }],
   })
 
-  const text = message.content[0].text
+  const text = message.content.filter(b => b.type === 'text').map(b => b.text).join('')
   const json = text.match(/\{[\s\S]+\}/)?.[0]
   return JSON.parse(json)
 }
@@ -116,7 +116,7 @@ async function generateB2CEmail(target) {
     messages: [{ role: 'user', content: prompt }],
   })
 
-  const text = message.content[0].text
+  const text = message.content.filter(b => b.type === 'text').map(b => b.text).join('')
   const json = text.match(/\{[\s\S]+\}/)?.[0]
   return JSON.parse(json)
 }

@@ -126,8 +126,9 @@ async function generateArticle(items) {
     .join('\n\n')
 
   const message = await client.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    model: 'claude-sonnet-5',
+    max_tokens: 16000,
+    output_config: { effort: 'medium' },
     messages: [{
       role: 'user',
       content: `あなたはフリーランス新法・下請法の専門ライターです。
@@ -152,7 +153,7 @@ ${newsText}
     }],
   })
 
-  const content = message.content[0].text
+  const content = message.content.filter(b => b.type === 'text').map(b => b.text).join('')
 
   // タイトルとメタディスクリプションを抽出（X投稿用）
   const titleMatch = content.match(/^#\s+(.+)$/m)

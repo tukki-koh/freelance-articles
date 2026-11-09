@@ -284,12 +284,13 @@ ${article.content}
 完全な記事をMarkdown形式で出力してください。`
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 6000,
+    model: 'claude-sonnet-5',
+    max_tokens: 16000,
+    output_config: { effort: 'medium' },
     messages: [{ role: 'user', content: prompt }],
   })
 
-  return message.content[0].text
+  return message.content.filter(b => b.type === 'text').map(b => b.text).join('')
 }
 
 // ================================================================
@@ -346,12 +347,13 @@ ${keyword}
 完全な記事をMarkdown形式で出力してください。`
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 6000,
+    model: 'claude-sonnet-5',
+    max_tokens: 16000,
+    output_config: { effort: 'medium' },
     messages: [{ role: 'user', content: prompt }],
   })
 
-  return message.content[0].text
+  return message.content.filter(b => b.type === 'text').map(b => b.text).join('')
 }
 
 // ================================================================
