@@ -136,7 +136,10 @@ function selectTheme(existingFiles) {
     )
   )
 
-  if (available.length === 0) return ARTICLE_THEMES[0]
+  // テーマを使い切ったときに ARTICLE_THEMES[0] を返すと、毎週まったく同じ記事を
+  // 作り続けてしまう（実際に7週連続で同一タイトルの記事が公開された）。
+  // 使い切った場合は固定プールに戻らず、新しいテーマを作らせる。
+  if (available.length === 0) return null
 
   // クラスターをローテーションして偏りをなくす
   const clusterCounts = {}
@@ -223,20 +226,76 @@ async function generateArticle(theme) {
 品質基準を全て守り、フリーランス新法・下請法の条文番号を根拠として使いながら、
 読者が「自分の問題が解決された」と感じ、かつ診断ツールへの購買意欲が湧く記事を書いてください。`
 
+  // Sonnet 5 は既定で思考ブロックを返すため content[0] が本文とは限らない。
+  // text ブロックだけを連結する。max_tokens は思考分も含めて消費される。
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 4000,
+    model: 'claude-sonnet-5',
+    max_tokens: 16000,
+    output_config: { effort: 'medium' },
     messages: [{ role: 'user', content: userPrompt }],
     system: systemPrompt,
   })
 
-  return message.content[0].text
+  const text = message.content.filter(b => b.type === 'text').map(b => b.text).join('').trim()
+  if (!text) {
+    throw new Error(`本文が空でした (stop_reason=${message.stop_reason})`)
+  }
+  return text
+}
+
+// ================================================================
+// 固定テーマを使い切ったときに、新しいテーマを作らせる
+// ================================================================
+async function inventTheme(existingFiles) {
+  const titles = existingFiles.map(f => {
+    try { return readFileSync(join(ROOT, f), 'utf8').match(/^#\s+(.+)$/m)?.[1] ?? '' }
+    catch { return '' }
+  }).filter(Boolean)
+
+  const prompt = `あなたはフリーランス向け契約書リスク診断サービスのSEO担当です。
+既に次の記事を公開済みです。これらと内容が重ならない、新しい記事テーマを1つ考えてください。
+
+公開済みの記事タイトル：
+${titles.map(t => `- ${t}`).join('\n')}
+
+条件：
+- 検索している読者は「契約書・報酬・取引条件に不安のあるフリーランス本人」
+- 実際に検索されそうな具体的な悩みを扱う（抽象的なテーマは不可）
+- 上の記事と重複しない。言い回しを変えただけのものも不可。
+- フリーランス新法または下請法の条文で答えられる内容にする
+
+次の形式だけを出力してください。説明は不要です。
+TITLE: <記事タイトル。40字以内>
+CLUSTER: <英小文字とハイフンのみの分類名>
+SLUG: <英小文字とハイフンのみ。20〜45文字。内容が分かるもの>
+KEYWORDS: <関連キーワードを読点区切りで3〜5個>`
+
+  const res = await anthropic.messages.create({
+    model: 'claude-sonnet-5',
+    max_tokens: 2000,
+    messages: [{ role: 'user', content: prompt }],
+  })
+  const out = res.content.filter(b => b.type === 'text').map(b => b.text).join('')
+  const pick = (k) => out.match(new RegExp(`${k}:\\s*(.+)`))?.[1]?.trim() ?? ''
+  const slug = pick('SLUG').toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 45)
+  const title = pick('TITLE')
+  if (!title || slug.length < 8) {
+    throw new Error(`新しいテーマを作れませんでした:\n${out.slice(0, 300)}`)
+  }
+  console.log('🆕 固定テーマを使い切ったため、新しいテーマを作成しました')
+  return {
+    title,
+    cluster: pick('CLUSTER') || 'general',
+    slug,
+    keywords: pick('KEYWORDS').split(/[、,]/).map(s => s.trim()).filter(Boolean),
+  }
 }
 
 // ================================================================
 // ファイル名のslugを生成
 // ================================================================
 function titleToSlug(theme) {
+  if (theme.slug) return theme.slug
   // タイトルは日本語なので、そのままslugにすると記事一覧のファイル名条件（英数字）に合わず
   // 公開されなかった。英数字だけ残し、足りなければ「クラスタ-日付」で一意なslugにする。
   const ascii = theme.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
@@ -280,7 +339,7 @@ async function main() {
 
   const existingFiles = getExistingArticles()
   const nextNumber = getNextFileNumber(existingFiles)
-  const theme = selectTheme(existingFiles)
+  const theme = selectTheme(existingFiles) ?? await inventTheme(existingFiles)
 
   console.log(`📌 選択テーマ: ${theme.title}`)
   console.log(`📁 記事番号: ${nextNumber}`)
