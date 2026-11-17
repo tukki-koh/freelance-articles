@@ -42,7 +42,7 @@ jobs:
   # ================================================================
   news-monitor:
     name: ニュース監視・記事自動生成
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # Playwrightがubuntu-26.04に未対応のため固定
     if: |
       github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'monitor' ||
       github.event_name == 'schedule' && github.event.schedule == '0 23 * * 0'
@@ -171,7 +171,7 @@ jobs:
   # ================================================================
   note-post:
     name: note定期投稿
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04  # Playwrightがubuntu-26.04に未対応のため固定
     if: |
       github.event_name == 'workflow_dispatch' && github.event.inputs.job == 'note' ||
       github.event_name == 'schedule' && (github.event.schedule == '0 23 * * 1' || github.event.schedule == '0 0 * * 4')
