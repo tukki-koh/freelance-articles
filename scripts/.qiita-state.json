@@ -1,5 +1,5 @@
 {
-  "nextIndex": 8,
+  "nextIndex": 9,
   "postedSlugs": [
     {
       "slug": "60day-rule-violation",
@@ -125,6 +125,11 @@
       "slug": "sme-freelance-ordering-caution",
       "url": "https://qiita.com/keiyakusho-ai/items/b32c9db1ed61fa86fa50",
       "postedAt": "2026-11-11T07:35:53.676Z"
+    },
+    {
+      "slug": "revision-cost-liability",
+      "url": "https://qiita.com/keiyakusho-ai/items/449b35f21b81dd18c0f8",
+      "postedAt": "2026-11-18T08:19:17.849Z"
     }
   ]
 }
