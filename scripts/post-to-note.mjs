@@ -325,6 +325,14 @@ export async function postToNote(title, markdownBody) {
 
     if (published) {
       console.log(`✅ 公開完了: https://note.com/notes/${key}`)
+      // 「アップロード完了」と出ていても実際には付いていなかったことがあるため、
+      // 公開後に見出し画像の有無を必ず確かめる。
+      try {
+        const d = await (await fetch(`https://note.com/api/v3/notes/${key}`)).json()
+        console.log(d?.data?.eyecatch ? '✅ 見出し画像の設定を確認' : '⚠️ 見出し画像が設定されていません')
+      } catch {
+        console.log('⚠️ 見出し画像の確認に失敗しました')
+      }
       return `https://note.com/notes/${key}`
     }
     throw new Error(`公開できませんでした。手動で公開してください: ${finalUrl}`)

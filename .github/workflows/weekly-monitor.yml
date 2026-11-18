@@ -62,8 +62,14 @@ jobs:
       - name: Playwrightブラウザをインストール
         run: npx playwright install chromium --with-deps
 
+      # この経路からもnoteへ投稿するため、ログイン情報の復元が要る。
+      # 無いままだと note 投稿だけが毎回失敗していた。
+      - name: noteセッションファイルを復元
+        run: echo '${{ secrets.NOTE_SESSION_JSON }}' > scripts/.note-session.json
+
       - name: ニュース監視 → 記事生成 → X投稿 → note投稿
         env:
+          UNSPLASH_ACCESS_KEY: ${{ secrets.UNSPLASH_ACCESS_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
