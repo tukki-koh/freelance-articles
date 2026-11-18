@@ -17,6 +17,7 @@ import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import https from 'https'
 import os from 'os'
+import { makeHeaderImage } from './make-header-image.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const SCREENSHOT_DIR = join(__dirname, '..', 'debug-screenshots')
@@ -115,16 +116,23 @@ export async function postToNote(title, markdownBody) {
     }
     console.log('✅ ログイン済み確認')
 
-    // ── ② Unsplash画像取得 ───────────────────────────────────
-    console.log('🖼️ Unsplash画像取得中...')
-    const keywords = title.replace(/[【】「」]/g, ' ').split(/\s+/).slice(0, 3).join(' ')
-    const headerImageUrl = await fetchUnsplashImage(keywords)
-    const bodyImageUrl = await fetchUnsplashImage(keywords + ' business')
+    // ── ② 画像を用意 ─────────────────────────────────────────
+    // 見出し画像は自分で作る。Unsplashの検索は日本語タイトルだとヒットしないことが多く、
+    // 画像なしのまま公開される記事が出ていたため、外部APIに依存させない。
+    console.log('🖼️ 見出し画像を作成中...')
     let headerImagePath = null
+    try {
+      headerImagePath = await makeHeaderImage(title, { browser })
+      console.log('✅ 見出し画像を作成しました')
+    } catch (e) {
+      console.log('⚠️ 見出し画像の作成に失敗:', e.message)
+    }
+
+    // 本文中の画像はUnsplashから。取れなければ入れない（見出し画像は必ず付く）。
+    const keywords = title.replace(/[【】「」]/g, ' ').split(/\s+/).slice(0, 3).join(' ')
+    const bodyImageUrl = await fetchUnsplashImage(keywords + ' business')
     let bodyImagePath = null
-    if (headerImageUrl) headerImagePath = await downloadImage(headerImageUrl)
     if (bodyImageUrl) bodyImagePath = await downloadImage(bodyImageUrl)
-    console.log(headerImagePath ? '✅ 見出し画像取得成功' : '⚠️ 見出し画像取得失敗')
 
     // ── ③ 新規記事ページへ（editor.note.com にリダイレクトされる）──
     console.log('✍️ 新規記事ページへ移動...')
@@ -194,31 +202,32 @@ export async function postToNote(title, markdownBody) {
       console.log('🖼️ 見出し画像をアップロード中...')
       try {
         const coverBtn = page.locator('button[data-id="ButtonIcon"]').first()
-        if (await coverBtn.count() > 0) {
-          await coverBtn.click()
-          await page.waitForTimeout(800)
-          const uploadOption = page.locator('button:has-text("画像をアップロード")').first()
-          if (await uploadOption.count() > 0) {
-            await uploadOption.click()
-            await page.waitForTimeout(500)
-          }
-          const fileInput = page.locator('input[type="file"]').first()
-          if (await fileInput.count() > 0) {
-            await fileInput.setInputFiles(headerImagePath)
-            await page.waitForTimeout(2500)
-            // 見出し画像アップロード後に出るクロップ（切り抜き）確認モーダルを保存で閉じる
-            const cropSaveBtn = page.locator('button:has-text("保存")').first()
-            if (await cropSaveBtn.count() > 0 && await cropSaveBtn.isVisible()) {
-              await cropSaveBtn.click({ force: true })
-              await page.waitForTimeout(1500)
-            }
-            console.log('✅ 見出し画像アップロード完了')
-          } else {
-            console.log('⚠️ 見出し画像: file inputが見つからず')
-          }
+        if (await coverBtn.count() === 0) throw new Error('見出し画像ボタンが見つからない')
+        await coverBtn.click({ force: true })
+        await page.waitForTimeout(1200)
+
+        // 「画像をアップロード」はファイル選択ダイアログを開くので、filechooser で受ける。
+        const chooser = page.waitForEvent('filechooser', { timeout: 10000 }).catch(() => null)
+        await page.locator('button:has-text("画像をアップロード")').first().click()
+        const fc = await chooser
+        if (fc) {
+          await fc.setFiles(headerImagePath)
         } else {
-          console.log('⚠️ 見出し画像ボタンが見つからず')
+          await page.locator('input[type="file"]').first().setInputFiles(headerImagePath)
         }
+        await page.waitForTimeout(3500)
+
+        // 切り抜き確認モーダルの「保存」。has-text だと画面上部の「下書き保存」に
+        // 先に当たってしまい、切り抜きが確定しないまま下書きが保存されていた。
+        // 完全一致で指定する。
+        const cropSave = page.getByRole('button', { name: '保存', exact: true }).first()
+        if (await cropSave.count() > 0 && await cropSave.isVisible()) {
+          await cropSave.click()
+          await page.waitForTimeout(2500)
+        } else {
+          throw new Error('切り抜きモーダルの「保存」が見つからない')
+        }
+        console.log('✅ 見出し画像アップロード完了')
       } catch (e) {
         console.log('⚠️ 見出し画像アップロード失敗:', e.message)
       }
